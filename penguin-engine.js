@@ -159,11 +159,24 @@ const PenguinEngine = (() => {
     for (let n=0; n<6; n++) particles.push({ x, y, vx:-dir*(Math.random()*2.8+.4)+Math.random()*1.1, vy:-Math.random()*2.4-.5, life:1, r:Math.random()*3+.8 });
   }
 
+  /* ── AUDIO HELPER — gracefully optional ── */
+  function tryAudio(fn, ...args) {
+    try {
+      if (typeof IceAudio !== 'undefined') {
+        IceAudio.unlock();
+        IceAudio.resume();
+        fn(...args);
+      }
+    } catch(e) { /* audio not available — silent fail */ }
+  }
+
   /* ── TRIGGER SLIDE ── */
   function triggerSlide(i) {
     const s = pSt[i];
     if (s.state === 'SLIDE') return;
     s.state = 'SLIDE'; s.stimer = 100; s.slideVx = s.dir * 9;
+    // Fire ice-slide sound at penguin's screen x position (0–1 normalised)
+    tryAudio(IceAudio.playSlideSoundAt, s.x / (GW || window.innerWidth));
   }
 
   /* ── MAIN ANIMATION LOOP ── */
@@ -194,7 +207,10 @@ const PenguinEngine = (() => {
     // Move & draw each penguin
     pSt.forEach((s, i) => {
       if (s.state === 'SLIDE') {
-        s.stimer--; if (s.stimer<=0) { s.state='WOBBLE'; s.wobT=50; s.wobAng=0; }
+        s.stimer--; if (s.stimer<=0) {
+          s.state='WOBBLE'; s.wobT=50; s.wobAng=0;
+          tryAudio(IceAudio.playWobbleSound, s.x / (GW || window.innerWidth));
+        }
         const px=s.x; s.slideVx*=.983; s.x+=s.slideVx; s.x=Math.max(44,Math.min(GW-44,s.x));
         if (Math.abs(s.slideVx)>.35) {
           trails.push({x1:px,y1:GROUND_Y,x2:s.x,y2:GROUND_Y,time:now});
