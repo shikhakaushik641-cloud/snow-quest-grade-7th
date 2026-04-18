@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard — Snow Quest Grade 7 | OMNI-GRID</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&family=Rajdhani:wght@300;400;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { width: 100%; height: 100%; overflow: hidden; background: #010915; }
+
+    #app {
+      width: 100vw; height: 100vh;
+      position: relative; overflow: hidden;
+      font-family: 'Rajdhani', sans-serif;
+    }
+
+    canvas {
+      position: absolute; top: 0; left: 0;
+      width: 100%; height: 100%; pointer-events: none;
+    }
+    #cBg      { z-index: 0; }
+    #cAurora  { z-index: 1; }
+    #cGlacier { z-index: 2; }
+    #cVillage { z-index: 3; }
+    #cIce     { z-index: 4; }
+    #cSnow    { z-index: 6; }
+    #cHud     { z-index: 7; }
+    #cTrail   { z-index: 8; }
+
+    /* ═══════════════════════════════════
+       DASHBOARD OVERLAY
+       ═══════════════════════════════════ */
+    #dashboard {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      z-index: 10;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* ── TOP BAR ── */
+    .top-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 28px 0;
+      flex-shrink: 0;
+    }
+    .back-btn {
+      display: flex; align-items: center; gap: 8px;
+      text-decoration: none;
+      color: rgba(0,200,255,.75);
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 11px; letter-spacing: 2px;
+      border: 1px solid rgba(0,200,255,.28);
+      padding: 7px 16px; border-radius: 3px;
+      background: rgba(0,20,50,.4);
+      backdrop-filter: blur(10px);
+      transition: all .25s;
+    }
+    .back-btn:hover { background: rgba(0,40,80,.55); border-color: rgba(0,220,255,.5); color: #00e5ff; }
+    .dash-title {
+      font-family: 'Orbitron', monospace;
+      font-size: clamp(16px, 2.5vw, 28px);
+      font-weight: 900;
+      background: linear-gradient(135deg, #80d8ff, #00e5ff, #b0f0ff);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+      letter-spacing: 5px;
+      filter: drop-shadow(0 0 18px rgba(0,200,255,.5));
+    }
+    .dash-badges { display: flex; gap: 8px; }
+    .badge {
+      background: rgba(0,229,255,.07);
+      border: 1px solid rgba(0,229,255,.3);
+      color: rgba(0,229,255,.85);
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 8px; letter-spacing: 2.5px;
+      padding: 4px 12px; border-radius: 2px;
+    }
+
+    /* ── SUBJECT TABS ── */
+    .tab-row {
+      display: flex;
+      gap: 4px;
+      padding: 12px 28px 0;
+      flex-shrink: 0;
+    }
+    .tab {
+      padding: 9px 22px;
+      font-family: 'Orbitron', monospace;
+      font-size: 10px; letter-spacing: 2px;
+      cursor: pointer;
+      border-radius: 4px 4px 0 0;
+      border: 1px solid transparent;
+      border-bottom: none;
+      background: rgba(0,15,40,.45);
+      color: rgba(0,180,220,.6);
+      backdrop-filter: blur(8px);
+      transition: all .25s;
+      position: relative;
+      white-space: nowrap;
+    }
+    .tab:hover { color: rgba(0,220,255,.9); background: rgba(0,30,65,.6); }
+    .tab.active {
+      color: #00e5ff;
+      background: rgba(0,25,60,.72);
+      border-color: rgba(0,200,255,.35);
+      border-bottom: 1px solid rgba(0,25,60,.72);
+    }
+    .tab.active::after {
+      content: '';
+      position: absolute; bottom: -1px; left: 0;
+      width: 100%; height: 2px;
+      background: linear-gradient(90deg, transparent, #00e5ff, transparent);
+    }
+    .tab-dot {
+      display: inline-block; width: 6px; height: 6px;
+      border-radius: 50%; margin-right: 6px; vertical-align: middle;
+    }
+
+    /* ── CONTENT PANEL ── */
+    .content-panel {
+      flex: 1;
+      margin: 0 28px;
+      background: rgba(0,18,50,.62);
+      border: 1px solid rgba(0,180,220,.22);
+      border-radius: 0 6px 0 0;
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Subject pane hidden/visible */
+    .subject-pane { display: none; flex: 1; overflow: hidden; }
+    .subject-pane.active { display: flex; }
+
+    /* ── SUBJECT HEADER ── */
+    .subj-header {
+      display: flex; align-items: center; gap: 14px;
+      padding: 16px 22px 14px;
+      border-bottom: 1px solid rgba(0,150,200,.18);
+      flex-shrink: 0;
+    }
+    .subj-icon-wrap {
+      width: 44px; height: 44px; border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 22px; flex-shrink: 0;
+      border: 1px solid rgba(0,200,255,.25);
+    }
+    .subj-name {
+      font-family: 'Orbitron', monospace;
+      font-size: clamp(13px, 1.8vw, 18px);
+      font-weight: 700; letter-spacing: 3px;
+    }
+    .subj-desc {
+      font-size: 12px; letter-spacing: 1px;
+      color: rgba(140,200,220,.6); margin-top: 3px;
+    }
+    .subj-progress {
+      margin-left: auto; text-align: right; flex-shrink: 0;
+    }
+    .progress-bar-wrap {
+      width: 120px; height: 4px;
+      background: rgba(0,100,150,.3);
+      border-radius: 2px; overflow: hidden; margin-top: 5px;
+    }
+    .progress-bar {
+      height: 100%; border-radius: 2px;
+      background: linear-gradient(90deg, #00b4d8, #00e5ff);
+      box-shadow: 0 0 8px rgba(0,200,255,.5);
+    }
+    .progress-label {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 10px; color: rgba(0,200,255,.65); letter-spacing: 1px;
+    }
+
+    /* ── CHAPTER GRID ── */
+    .chapter-scroll {
+      flex: 1; overflow-y: auto; padding: 16px 22px 14px;
+    }
+    .chapter-scroll::-webkit-scrollbar { width: 4px; }
+    .chapter-scroll::-webkit-scrollbar-track { background: rgba(0,20,50,.3); }
+    .chapter-scroll::-webkit-scrollbar-thumb { background: rgba(0,180,255,.35); border-radius: 2px; }
+
+    .chapter-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 10px;
+    }
+
+    .chapter-card {
+      background: rgba(0,25,60,.55);
+      border: 1px solid rgba(0,150,200,.2);
+      border-radius: 6px;
+      padding: 14px 16px;
+      cursor: pointer;
+      transition: all .25s;
+      position: relative;
+      overflow: hidden;
+    }
+    .chapter-card::before {
+      content: '';
+      position: absolute; top: 0; left: 0;
+      width: 3px; height: 100%;
+    }
+    .chapter-card:hover {
+      border-color: rgba(0,200,255,.42);
+      background: rgba(0,35,80,.65);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 24px rgba(0,150,200,.15);
+    }
+    .ch-number {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 9px; letter-spacing: 2px;
+      margin-bottom: 6px;
+    }
+    .ch-title {
+      font-family: 'Rajdhani', sans-serif;
+      font-weight: 600; font-size: 14px;
+      color: rgba(200,235,255,.9); margin-bottom: 8px;
+    }
+    .ch-footer {
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .ch-topics {
+      font-size: 11px; color: rgba(120,180,210,.6);
+    }
+    .test-badge {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 8px; letter-spacing: 1.5px;
+      padding: 3px 8px; border-radius: 2px;
+      background: rgba(0,200,120,.1);
+      border: 1px solid rgba(0,200,120,.35);
+      color: #00e87a;
+    }
+    .test-badge.locked {
+      background: rgba(100,100,150,.1);
+      border-color: rgba(100,100,150,.3);
+      color: rgba(150,170,200,.5);
+    }
+
+    /* ── BOTTOM STRIP — penguin ground ── */
+    .bottom-strip {
+      height: 92px; flex-shrink: 0;
+      /* penguins walk here — canvas is below */
+      position: relative;
+    }
+    .strip-label {
+      position: absolute;
+      bottom: 6px; right: 28px;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 8px; letter-spacing: 2px;
+      color: rgba(0,200,255,.3);
+    }
+  </style>
+</head>
+<body>
+<div id="app">
+  <!-- Scene layers -->
+  <canvas id="cBg"></canvas>
+  <canvas id="cAurora"></canvas>
+  <canvas id="cGlacier"></canvas>
+  <canvas id="cVillage"></canvas>
+  <canvas id="cIce"></canvas>
+  <canvas id="cSnow"></canvas>
+  <canvas id="cHud"></canvas>
+  <canvas id="cTrail"></canvas>
+
+  <!-- Dashboard -->
+  <div id="dashboard">
+
+    <!-- Top bar -->
+    <div class="top-bar">
+      <a class="back-btn" href="index.html">&#8592; EXPEDITION HQ</a>
+      <div class="dash-title">SUBJECT INDEX</div>
+      <div class="dash-badges">
+        <div class="badge">CLASS 7</div>
+        <div class="badge">OMNI-GRID</div>
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tab-row" id="tabRow">
+      <div class="tab active" data-tab="physics">
+        <span class="tab-dot" style="background:#00c8ff;box-shadow:0 0 6px #00c8ff;"></span>PHYSICS
+      </div>
+      <div class="tab" data-tab="chemistry">
+        <span class="tab-dot" style="background:#00e87a;box-shadow:0 0 6px #00e87a;"></span>CHEMISTRY
+      </div>
+      <div class="tab" data-tab="biology">
+        <span class="tab-dot" style="background:#b44fff;box-shadow:0 0 6px #b44fff;"></span>BIOLOGY
+      </div>
+      <div class="tab" data-tab="maths">
+        <span class="tab-dot" style="background:#ff9900;box-shadow:0 0 6px #ff9900;"></span>MATHS
+      </div>
+      <div class="tab" data-tab="english">
+        <span class="tab-dot" style="background:#ff4f8b;box-shadow:0 0 6px #ff4f8b;"></span>ENGLISH
+      </div>
+      <div class="tab" data-tab="geography">
+        <span class="tab-dot" style="background:#00e5cc;box-shadow:0 0 6px #00e5cc;"></span>GEOGRAPHY
+      </div>
+    </div>
+
+    <!-- Content panel -->
+    <div class="content-panel">
+
+      <!-- PHYSICS -->
+      <div class="subject-pane active" id="pane-physics">
+        <div style="display:flex;flex-direction:column;width:100%;overflow:hidden;">
+          <div class="subj-header">
+            <div class="subj-icon-wrap" style="background:rgba(0,200,255,.1);">&#9883;</div>
+            <div>
+              <div class="subj-name" style="color:#00c8ff;">PHYSICS POLAR STATION</div>
+              <div class="subj-desc">Mechanics · Thermodynamics · Waves · Optics</div>
+            </div>
+            <div class="subj-progress">
+              <div class="progress-label">PROGRESS: 25%</div>
+              <div class="progress-bar-wrap"><div class="progress-bar" style="width:25%;"></div></div>
+            </div>
+          </div>
+          <div class="chapter-scroll">
+            <div class="chapter-grid" id="grid-physics"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CHEMISTRY -->
+      <div class="subject-pane" id="pane-chemistry">
+        <div style="display:flex;flex-direction:column;width:100%;overflow:hidden;">
+          <div class="subj-header">
+            <div class="subj-icon-wrap" style="background:rgba(0,232,122,.1);">&#9879;</div>
+            <div>
+              <div class="subj-name" style="color:#00e87a;">CHEMISTRY CRYPT</div>
+              <div class="subj-desc">Matter · Reactions · Bonds · Organic Intro</div>
+            </div>
+            <div class="subj-progress">
+              <div class="progress-label">PROGRESS: 50%</div>
+              <div class="progress-bar-wrap"><div class="progress-bar" style="width:50%;background:linear-gradient(90deg,#00b45a,#00e87a);"></div></div>
+            </div>
+          </div>
+          <div class="chapter-scroll">
+            <div class="chapter-grid" id="grid-chemistry"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- BIOLOGY -->
+      <div class="subject-pane" id="pane-biology">
+        <div style="display:flex;flex-direction:column;width:100%;overflow:hidden;">
+          <div class="subj-header">
+            <div class="subj-icon-wrap" style="background:rgba(180,79,255,.1);">&#127807;</div>
+            <div>
+              <div class="subj-name" style="color:#b44fff;">BIOLOGY BIOME</div>
+              <div class="subj-desc">Cells · Ecosystems · Adaptations · Genetics Intro</div>
+            </div>
+            <div class="subj-progress">
+              <div class="progress-label">PROGRESS: 75%</div>
+              <div class="progress-bar-wrap"><div class="progress-bar" style="width:75%;background:linear-gradient(90deg,#8b00ff,#b44fff);"></div></div>
+            </div>
+          </div>
+          <div class="chapter-scroll">
+            <div class="chapter-grid" id="grid-biology"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- MATHS -->
+      <div class="subject-pane" id="pane-maths">
+        <div style="display:flex;flex-direction:column;width:100%;overflow:hidden;">
+          <div class="subj-header">
+            <div class="subj-icon-wrap" style="background:rgba(255,153,0,.1);">&#8730;</div>
+            <div>
+              <div class="subj-name" style="color:#ff9900;">MATH MAZE</div>
+              <div class="subj-desc">Algebra · Geometry · Data · Probability</div>
+            </div>
+            <div class="subj-progress">
+              <div class="progress-label">PROGRESS: 40%</div>
+              <div class="progress-bar-wrap"><div class="progress-bar" style="width:40%;background:linear-gradient(90deg,#cc6600,#ff9900);"></div></div>
+            </div>
+          </div>
+          <div class="chapter-scroll">
+            <div class="chapter-grid" id="grid-maths"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ENGLISH -->
+      <div class="subject-pane" id="pane-english">
+        <div style="display:flex;flex-direction:column;width:100%;overflow:hidden;">
+          <div class="subj-header">
+            <div class="subj-icon-wrap" style="background:rgba(255,79,139,.1);">&#9997;</div>
+            <div>
+              <div class="subj-name" style="color:#ff4f8b;">ENGLISH ARCHIVE</div>
+              <div class="subj-desc">Grammar · Comprehension · Writing · Literature</div>
+            </div>
+            <div class="subj-progress">
+              <div class="progress-label">PROGRESS: 60%</div>
+              <div class="progress-bar-wrap"><div class="progress-bar" style="width:60%;background:linear-gradient(90deg,#cc0055,#ff4f8b);"></div></div>
+            </div>
+          </div>
+          <div class="chapter-scroll">
+            <div class="chapter-grid" id="grid-english"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- GEOGRAPHY -->
+      <div class="subject-pane" id="pane-geography">
+        <div style="display:flex;flex-direction:column;width:100%;overflow:hidden;">
+          <div class="subj-header">
+            <div class="subj-icon-wrap" style="background:rgba(0,229,204,.1);">&#127758;</div>
+            <div>
+              <div class="subj-name" style="color:#00e5cc;">GEOGRAPHY GRID</div>
+              <div class="subj-desc">Maps · Climate · Resources · Human Geography</div>
+            </div>
+            <div class="subj-progress">
+              <div class="progress-label">PROGRESS: 10%</div>
+              <div class="progress-bar-wrap"><div class="progress-bar" style="width:10%;background:linear-gradient(90deg,#009977,#00e5cc);"></div></div>
+            </div>
+          </div>
+          <div class="chapter-scroll">
+            <div class="chapter-grid" id="grid-geography"></div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /content-panel -->
+
+    <!-- Bottom strip where penguins walk -->
+    <div class="bottom-strip">
+      <div class="strip-label">CRYO-STATION ALPHA // OMNI-GRID SYS-7</div>
+    </div>
+
+  </div><!-- /dashboard -->
+</div>
+
+<script src="penguin-engine.js"></script>
+<script src="scene.js"></script>
+<script>
+/* ── CHAPTER DATA ── */
+const CHAPTERS = {
+  physics: [
+    { ch:'CH 01', title:'Motion & Laws of Newton', topics:'8 topics', done:true },
+    { ch:'CH 02', title:'Thermodynamics of Ice', topics:'6 topics', done:true },
+    { ch:'CH 03', title:'Wave Motion in Glaciers', topics:'7 topics', done:false },
+    { ch:'CH 04', title:'Pressure & Buoyancy', topics:'5 topics', done:false },
+    { ch:'CH 05', title:'Optics & Refraction', topics:'8 topics', done:false },
+    { ch:'CH 06', title:'Electric Circuits', topics:'9 topics', done:false },
+    { ch:'CH 07', title:'Magnetism', topics:'6 topics', done:false },
+    { ch:'CH 08', title:'Energy & Power', topics:'7 topics', done:false },
+  ],
+  chemistry: [
+    { ch:'CH 01', title:'States of H₂O', topics:'6 topics', done:true },
+    { ch:'CH 02', title:'Atomic Structure', topics:'8 topics', done:true },
+    { ch:'CH 03', title:'Periodic Table Explorer', topics:'10 topics', done:true },
+    { ch:'CH 04', title:'Ionic Bonds in Ice', topics:'7 topics', done:true },
+    { ch:'CH 05', title:'Antifreeze Chemistry', topics:'5 topics', done:false },
+    { ch:'CH 06', title:'Acids & Bases', topics:'8 topics', done:false },
+    { ch:'CH 07', title:'Polar Reactions', topics:'6 topics', done:false },
+    { ch:'CH 08', title:'Carbon Compounds', topics:'9 topics', done:false },
+  ],
+  biology: [
+    { ch:'CH 01', title:'Cell Structure & Function', topics:'7 topics', done:true },
+    { ch:'CH 02', title:'Arctic Ecosystems', topics:'8 topics', done:true },
+    { ch:'CH 03', title:'Adaptation & Survival', topics:'6 topics', done:true },
+    { ch:'CH 04', title:'Polar Food Webs', topics:'5 topics', done:true },
+    { ch:'CH 05', title:'Photosynthesis', topics:'7 topics', done:true },
+    { ch:'CH 06', title:'Human Systems', topics:'10 topics', done:true },
+    { ch:'CH 07', title:'Extremophiles', topics:'4 topics', done:false },
+    { ch:'CH 08', title:'Genetics Intro', topics:'8 topics', done:false },
+  ],
+  maths: [
+    { ch:'CH 01', title:'Integers & Rational Numbers', topics:'9 topics', done:true },
+    { ch:'CH 02', title:'Coordinate Geometry', topics:'7 topics', done:true },
+    { ch:'CH 03', title:'Linear Equations', topics:'8 topics', done:true },
+    { ch:'CH 04', title:'Triangles & Congruence', topics:'6 topics', done:true },
+    { ch:'CH 05', title:'Fractals & Patterns', topics:'5 topics', done:false },
+    { ch:'CH 06', title:'Volume & Surface Area', topics:'8 topics', done:false },
+    { ch:'CH 07', title:'Data Handling', topics:'7 topics', done:false },
+    { ch:'CH 08', title:'Probability Models', topics:'6 topics', done:false },
+  ],
+  english: [
+    { ch:'CH 01', title:'Nouns, Pronouns & Adjectives', topics:'8 topics', done:true },
+    { ch:'CH 02', title:'Tenses & Verb Forms', topics:'9 topics', done:true },
+    { ch:'CH 03', title:'Reading Comprehension', topics:'6 topics', done:true },
+    { ch:'CH 04', title:'Essay Writing Techniques', topics:'7 topics', done:true },
+    { ch:'CH 05', title:'Poetry & Figures of Speech', topics:'6 topics', done:true },
+    { ch:'CH 06', title:'Letter & Report Writing', topics:'5 topics', done:true },
+    { ch:'CH 07', title:'Prose — The Blue Umbrella', topics:'4 topics', done:false },
+    { ch:'CH 08', title:'Drama & Dialogue', topics:'5 topics', done:false },
+  ],
+  geography: [
+    { ch:'CH 01', title:'Maps & Globe — Revision', topics:'6 topics', done:true },
+    { ch:'CH 02', title:'Interior of the Earth', topics:'7 topics', done:false },
+    { ch:'CH 03', title:'Rocks & Minerals', topics:'5 topics', done:false },
+    { ch:'CH 04', title:'Air & Atmosphere', topics:'8 topics', done:false },
+    { ch:'CH 05', title:'Water Bodies', topics:'7 topics', done:false },
+    { ch:'CH 06', title:'Natural Vegetation', topics:'6 topics', done:false },
+    { ch:'CH 07', title:'Human Environment', topics:'9 topics', done:false },
+    { ch:'CH 08', title:'Life in Polar Regions', topics:'5 topics', done:false },
+  ],
+};
+
+const TAB_COLORS = {
+  physics:'#00c8ff', chemistry:'#00e87a', biology:'#b44fff',
+  maths:'#ff9900', english:'#ff4f8b', geography:'#00e5cc'
+};
+
+/* ── BUILD CHAPTER CARDS ── */
+function buildGrids() {
+  Object.entries(CHAPTERS).forEach(([subj, chapters]) => {
+    const grid = document.getElementById('grid-' + subj);
+    const color = TAB_COLORS[subj];
+    chapters.forEach((ch, idx) => {
+      const card = document.createElement('div');
+      card.className = 'chapter-card';
+      card.style.setProperty('--accent', color);
+      card.querySelector && 0; // just html
+      card.innerHTML = `
+        <div style="position:absolute;top:0;left:0;width:3px;height:100%;background:${color};opacity:${ch.done?'0.9':'0.3'};border-radius:2px 0 0 2px;"></div>
+        <div class="ch-number" style="color:${color};opacity:.7;">CHAPTER ${String(idx+1).padStart(2,'0')}</div>
+        <div class="ch-title">${ch.title}</div>
+        <div class="ch-footer">
+          <div class="ch-topics">${ch.topics}</div>
+          <div class="test-badge ${ch.done?'':'locked'}">${ch.done?'✓ TESTING ZONE':'LOCKED'}</div>
+        </div>`;
+      card.addEventListener('click', () => {
+        // Pulse the card
+        card.style.boxShadow = `0 0 28px ${color}44`;
+        setTimeout(() => card.style.boxShadow = '', 600);
+      });
+      grid.appendChild(card);
+    });
+  });
+}
+
+/* ── TAB SWITCHING ── */
+function initTabs() {
+  document.querySelectorAll('.tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.subject-pane').forEach(p => p.classList.remove('active'));
+      tab.classList.add('active');
+      const pane = document.getElementById('pane-' + tab.dataset.tab);
+      if (pane) pane.classList.add('active');
+    });
+  });
+}
+
+/* ── BOOT ── */
+buildGrids();
+initTabs();
+SnowQuestScene.init('app');
+PenguinEngine.init('cTrail', 'app', SnowQuestScene.GROUND_Y);
+</script>
+</body>
+</html>

@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Snow Quest — Grade 7 | OMNI-GRID Universe</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&family=Rajdhani:wght@300;400;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { width: 100%; height: 100%; overflow: hidden; background: #010915; }
+
+    #app {
+      width: 100vw;
+      height: 100vh;
+      position: relative;
+      overflow: hidden;
+      font-family: 'Rajdhani', sans-serif;
+    }
+
+    canvas {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      pointer-events: none;
+    }
+
+    #cBg      { z-index: 0; }
+    #cAurora  { z-index: 1; }
+    #cGlacier { z-index: 2; }
+    #cVillage { z-index: 3; }
+    #cIce     { z-index: 4; }
+    #cSnow    { z-index: 6; }
+    #cHud     { z-index: 7; }
+    #cTrail   { z-index: 8; pointer-events: all; }
+
+    /* ── UI LAYER ── */
+    .ui {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      z-index: 10;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      pointer-events: none;
+    }
+
+    .badge-row { margin-top: 20px; display: flex; gap: 10px; }
+    .badge {
+      background: rgba(0,229,255,.07);
+      border: 1px solid rgba(0,229,255,.32);
+      color: rgba(0,229,255,.88);
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 3px;
+      padding: 5px 16px;
+      border-radius: 2px;
+    }
+
+    .title {
+      font-family: 'Orbitron', monospace;
+      font-size: clamp(36px, 8vw, 78px);
+      font-weight: 900;
+      margin-top: 14px;
+      text-align: center;
+      letter-spacing: 6px;
+      line-height: 1;
+      background: linear-gradient(160deg, #f0f8ff 0%, #80d8ff 28%, #00e5ff 52%, #b0f0ff 76%, #fff 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      filter: drop-shadow(0 0 40px rgba(0,200,255,.65)) drop-shadow(0 0 90px rgba(0,150,200,.28));
+    }
+
+    .title-sub {
+      color: rgba(0,200,255,.5);
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 12px;
+      letter-spacing: 4px;
+      margin-top: 10px;
+    }
+
+    .btn {
+      pointer-events: all;
+      margin-top: 28px;
+      position: relative;
+      padding: 15px 48px;
+      background: rgba(0,18,42,.55);
+      border: 1px solid rgba(0,220,255,.55);
+      color: #00e5ff;
+      font-family: 'Orbitron', monospace;
+      font-size: 12px;
+      letter-spacing: 4px;
+      cursor: pointer;
+      border-radius: 4px;
+      overflow: hidden;
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      transition: all .3s;
+      text-shadow: 0 0 12px rgba(0,200,255,.55);
+      text-decoration: none;
+      display: inline-block;
+    }
+    .btn::before {
+      content: '';
+      position: absolute;
+      top: -50%; left: -70%;
+      width: 38%; height: 200%;
+      background: linear-gradient(90deg, transparent, rgba(0,230,255,.3), transparent);
+      transform: skewX(-20deg);
+      animation: shim 3s ease-in-out infinite;
+    }
+    @keyframes shim { 0%{left:-70%} 100%{left:140%} }
+    .btn:hover {
+      background: rgba(0,45,80,.65);
+      box-shadow: 0 0 34px rgba(0,200,255,.35), inset 0 0 20px rgba(0,200,255,.09);
+    }
+
+    .compass {
+      position: absolute;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 5px;
+      animation: cpulse 2.6s ease-in-out infinite;
+      pointer-events: none;
+    }
+    @keyframes cpulse {
+      0%,100%{ opacity:.4; transform: translateX(-50%) scale(1); }
+      50%    { opacity:.9; transform: translateX(-50%) scale(1.08); }
+    }
+    .cring {
+      width: 36px; height: 36px;
+      border: 1.5px solid rgba(0,220,255,.6);
+      border-top: 1.5px solid transparent;
+      border-radius: 50%;
+      animation: cspin 5s linear infinite;
+      position: relative;
+    }
+    .cring::after {
+      content: '';
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%,-50%);
+      width: 7px; height: 7px;
+      background: rgba(0,220,255,.9);
+      border-radius: 50%;
+    }
+    @keyframes cspin { to { transform: rotate(360deg); } }
+    .clabel {
+      color: rgba(0,200,255,.46);
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 8px;
+      letter-spacing: 2px;
+    }
+
+    /* hit zones for penguin interaction */
+    .peng-hit {
+      position: absolute;
+      width: 80px; height: 100px;
+      cursor: pointer;
+      z-index: 9;
+    }
+  </style>
+</head>
+<body>
+<div id="app">
+  <canvas id="cBg"></canvas>
+  <canvas id="cAurora"></canvas>
+  <canvas id="cGlacier"></canvas>
+  <canvas id="cVillage"></canvas>
+  <canvas id="cIce"></canvas>
+  <canvas id="cSnow"></canvas>
+  <canvas id="cHud"></canvas>
+  <canvas id="cTrail"></canvas>
+
+  <!-- hit zones placed by JS -->
+
+  <div class="ui">
+    <div class="badge-row">
+      <div class="badge">OMNI-GRID // SYS-7</div>
+      <div class="badge">CRYO-STATION ALPHA</div>
+    </div>
+    <div class="title">SNOW QUEST</div>
+    <div class="title-sub">[ SIMULATION ACTIVE · CLASS 7 · OMNI-GRID UNIVERSE ]</div>
+    <a class="btn" href="dashboard.html">&#9658;&nbsp; HACK THE EXPEDITION</a>
+    <div class="compass">
+      <div class="cring"></div>
+      <div class="clabel">NAVIGATE</div>
+    </div>
+  </div>
+</div>
+
+<script src="penguin-engine.js"></script>
+<script src="scene.js"></script>
+<script>
+  // Boot the scene and penguin engine
+  SnowQuestScene.init('app');
+  PenguinEngine.init('cTrail', 'app', SnowQuestScene.GROUND_Y);
+</script>
+</body>
+</html>
