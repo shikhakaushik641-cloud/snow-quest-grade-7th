@@ -2,205 +2,244 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>OMNI-GRID: Class 7 Next Gen Index</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OMNI-GRID | Expedition Hub Class 7</title>
     <style>
         :root {
-            --bg-deep: #050a14;
-            --sidebar-glass: rgba(255, 255, 255, 0.03);
-            --neon-yellow: #f4ff00;
-            --text-blue: #0a1931; /* Bold Dark Blue for Tabs */
+            --bg-space: #020b18;
+            --neon-blue: #00d4ff;
+            --neon-yellow: #fbff00;
+            --tab-white: #ffffff;
+            --text-dark: #0a1931;
+            --glass: rgba(255, 255, 255, 0.05);
         }
 
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
         body {
-            margin: 0;
-            background-color: var(--bg-deep);
-            background-image: radial-gradient(circle at 50% 50%, #101a2d 0%, #050a14 100%);
-            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background: radial-gradient(circle at center, #101d35 0%, var(--bg-space) 100%);
+            color: #fff;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             display: flex;
             height: 100vh;
-            color: #e0e6ed;
             overflow: hidden;
         }
 
-        /* SIDEBAR */
+        /* --- THEME OVERLAY (Stars & Tech Lines) --- */
+        .overlay {
+            position: absolute;
+            width: 100%; height: 100%;
+            background-image: url('https://www.transparenttextures.com/patterns/stardust.png');
+            opacity: 0.3;
+            pointer-events: none;
+        }
+
+        /* --- SIDEBAR NAVIGATION --- */
         #sidebar {
-            width: 300px;
-            background: var(--sidebar-glass);
-            backdrop-filter: blur(20px);
-            border-right: 1px solid rgba(255, 255, 255, 0.1);
+            width: 320px;
+            background: var(--glass);
+            backdrop-filter: blur(15px);
+            border-right: 1px solid rgba(0, 212, 255, 0.2);
+            padding: 50px 25px;
             display: flex;
             flex-direction: column;
-            padding: 40px 20px;
             gap: 20px;
             z-index: 10;
         }
 
-        /* SUBJECT TABS */
         .subject-tab {
             position: relative;
-            background: #ffffff;
-            color: var(--text-blue);
-            padding: 18px 25px;
-            border-radius: 12px;
-            font-weight: 800;
-            font-size: 15px;
+            background: var(--tab-white);
+            color: var(--text-dark);
+            padding: 20px;
+            border-radius: 15px;
+            font-weight: 900;
+            font-size: 14px;
+            text-transform: uppercase;
             cursor: pointer;
-            text-align: left;
-            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             border: 2px solid transparent;
             overflow: hidden;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
         }
 
-        /* YELLOW STREAK ILLUMINATION EFFECT */
-        .subject-tab::before {
-            content: "";
+        /* YELLOW STREAK ANIMATION */
+        .subject-tab::after {
+            content: '';
             position: absolute;
             top: 0; left: -100%;
-            width: 100%; height: 100%;
-            background: linear-gradient(90deg, transparent, var(--neon-yellow), transparent);
-            transition: 0.5s;
+            width: 100%; height: 4px;
+            background: var(--neon-yellow);
+            transition: 0.4s;
         }
 
         .subject-tab:hover {
-            transform: translateX(10px) scale(1.02);
-            box-shadow: 0 0 25px rgba(244, 255, 0, 0.4);
+            transform: translateX(15px);
+            box-shadow: 0 0 30px rgba(251, 255, 0, 0.4);
             border-color: var(--neon-yellow);
         }
 
-        .subject-tab:hover::before {
+        .subject-tab:hover::after {
             left: 100%;
         }
 
-        /* MAIN STAGE */
+        /* --- MAIN STAGE --- */
         #main-stage {
             flex-grow: 1;
             padding: 60px;
-            overflow-y: auto;
+            position: relative;
+            z-index: 5;
+            display: flex;
+            flex-direction: column;
         }
 
-        #subject-header {
-            font-size: 3rem;
-            font-weight: 900;
+        header h1 {
+            font-size: 3.5rem;
+            letter-spacing: -2px;
             margin-bottom: 40px;
-            background: linear-gradient(to right, #fff, #5a78af);
+            background: linear-gradient(to bottom, #fff, var(--neon-blue));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            text-transform: uppercase;
         }
 
-        /* CHAPTER GRID */
         #index-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 25px;
-            opacity: 0;
-            transform: translateY(20px);
-            transition: all 0.5s ease-out;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+            overflow-y: auto;
+            padding-bottom: 100px;
         }
 
         .chapter-card {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(0, 212, 255, 0.1);
             padding: 25px;
-            border-radius: 16px;
-            position: relative;
+            border-radius: 20px;
             transition: 0.3s;
+            animation: fadeIn 0.5s ease forwards;
         }
 
         .chapter-card:hover {
-            background: rgba(255, 255, 255, 0.08);
-            border-color: var(--neon-yellow);
+            background: rgba(0, 212, 255, 0.05);
+            border-color: var(--neon-blue);
+            transform: translateY(-5px);
         }
 
-        .chapter-no {
-            font-size: 0.8rem;
-            color: var(--neon-yellow);
-            font-weight: bold;
-            display: block;
-            margin-bottom: 8px;
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
-        .chapter-name {
-            font-size: 1.1rem;
-            font-weight: 600;
-        }
-
-        .tag-status {
+        /* --- PENGUIN SNOW-QUEST FOOTER --- */
+        .snow-ground {
             position: absolute;
-            top: 15px; right: 15px;
-            font-size: 10px;
-            padding: 4px 8px;
-            background: rgba(0, 212, 255, 0.2);
-            color: #00d4ff;
-            border-radius: 4px;
-            border: 1px solid #00d4ff;
+            bottom: 0; left: 320px;
+            width: calc(100% - 320px);
+            height: 120px;
+            background: linear-gradient(to top, #ffffff1a, transparent);
+            pointer-events: none;
         }
+
+        .penguin-slider {
+            position: absolute;
+            bottom: 20px;
+            width: 80px;
+            height: 80px;
+            background: url('https://img.icons8.com/color/96/penguin.png') no-repeat center;
+            background-size: contain;
+            animation: slideLeft 15s linear infinite;
+            filter: drop-shadow(0 0 10px rgba(255,255,255,0.5));
+        }
+
+        @keyframes slideLeft {
+            from { right: -100px; transform: rotate(-5deg); }
+            to { right: 110%; transform: rotate(5deg); }
+        }
+
     </style>
 </head>
 <body>
 
-<nav id="sidebar">
-    <div class="subject-tab" onmouseover="loadChapters('SCIENCE')">Science (Curiosity)</div>
-    <div class="subject-tab" onmouseover="loadChapters('MATHS')">Mathematics</div>
-    <div class="subject-tab" onmouseover="loadChapters('SST')">Exploring Society</div>
-    <div class="subject-tab" onmouseover="loadChapters('ENGLISH')">English (Poorvi)</div>
-</nav>
+    <div class="overlay"></div>
 
-<main id="main-stage">
-    <h1 id="subject-header">Intelligence Hub</h1>
-    <div id="index-grid"></div>
-</main>
+    <nav id="sidebar">
+        <div class="subject-tab" onmouseover="updateIndex('SCIENCE')">Science (Curiosity)</div>
+        <div class="subject-tab" onmouseover="updateIndex('MATHS')">Mathematics</div>
+        <div class="subject-tab" onmouseover="updateIndex('SST')">Exploring Society</div>
+        <div class="subject-tab" onmouseover="updateIndex('ENGLISH')">English (Poorvi)</div>
+        <div class="subject-tab" onmouseover="updateIndex('HINDI')">Hindi (Vasant)</div>
+    </nav>
 
-<script>
-    const ncertData = {
-        "SCIENCE": [
-            { id: "01", name: "The Ever-Evolving World of Science", tag: "OPEN" },
-            { id: "02", name: "Exploring Substances: Acid/Base", tag: "OPEN" },
-            { id: "03", name: "Electricity and Circuits", tag: "LOCKED" },
-            { id: "04", name: "Metals & Non-metals", tag: "LOCKED" }
-        ],
-        "MATHS": [
-            { id: "01", name: "Integers", tag: "COMPLETED" },
-            { id: "02", name: "Fractions and Decimals", tag: "OPEN" },
-            { id: "03", name: "Data Handling", tag: "LOCKED" }
-        ],
-        "SST": [
-            { id: "01", name: "Geographical Diversity", tag: "OPEN" },
-            { id: "02", name: "The Constitution: Introduction", tag: "OPEN" },
-            { id: "03", name: "Climate of India", tag: "LOCKED" }
-        ],
-        "ENGLISH": [
-            { id: "01", name: "Learning Together", tag: "OPEN" },
-            { id: "02", name: "Wit and Humour", tag: "OPEN" }
-        ]
-    };
+    <main id="main-stage">
+        <header>
+            <h1 id="subject-title">OMNI-GRID HUB</h1>
+        </header>
+        <div id="index-grid">
+            </div>
 
-    function loadChapters(subjectKey) {
-        const grid = document.getElementById('index-grid');
-        const header = document.getElementById('subject-header');
-        
-        // Reset state
-        grid.style.opacity = "0";
-        grid.style.transform = "translateY(20px)";
-        header.innerText = subjectKey;
+        <div class="snow-ground">
+            <div class="penguin-slider" style="animation-duration: 12s; bottom: 10px;"></div>
+            <div class="penguin-slider" style="animation-duration: 18s; bottom: 40px; animation-delay: 5s;"></div>
+        </div>
+    </main>
 
-        setTimeout(() => {
-            grid.innerHTML = "";
-            ncertData[subjectKey].forEach(ch => {
+    <script>
+        const curriculum = {
+            "SCIENCE": [
+                { id: "01", name: "The Ever-Evolving World of Science" },
+                { id: "02", name: "Exploring Substances: Acid/Base" },
+                { id: "03", name: "Electricity and Circuits" },
+                { id: "04", name: "Metals & Non-metals" },
+                { id: "05", name: "Changes Around Us" },
+                { id: "06", name: "Adolescence: Growth and Change" }
+            ],
+            "MATHS": [
+                { id: "01", name: "Integers" },
+                { id: "02", name: "Fractions and Decimals" },
+                { id: "03", name: "Data Handling" },
+                { id: "04", name: "Simple Equations" },
+                { id: "05", name: "Lines and Angles" },
+                { id: "06", name: "Triangle Properties" },
+                { id: "07", name: "Comparing Quantities" },
+                { id: "08", name: "Rational Numbers" }
+            ],
+            "SST": [
+                { id: "01", name: "Geographical Diversity of India" },
+                { id: "02", name: "Understanding the Weather" },
+                { id: "10", name: "Indian Constitution: Introduction" },
+                { id: "04", name: "Making of New States" },
+                { id: "05", name: "Rulers & Buildings" }
+            ],
+            "ENGLISH": [
+                { id: "01", name: "Learning Together" },
+                { id: "02", name: "Wit and Humour" },
+                { id: "03", name: "Dreams and Discoveries" },
+                { id: "04", name: "Health and Wellness" }
+            ],
+            "HINDI": [
+                { id: "01", name: "Ham Panchi Unmukt Gagan Ke" },
+                { id: "02", name: "Himalay ki Betiyan" },
+                { id: "03", name: "Kathputli" }
+            ]
+        };
+
+        function updateIndex(subject) {
+            const grid = document.getElementById('index-grid');
+            const title = document.getElementById('subject-title');
+            
+            title.innerText = subject + " INDEX";
+            grid.innerHTML = ""; // Clear current
+
+            curriculum[subject].forEach(ch => {
                 const card = document.createElement('div');
                 card.className = 'chapter-card';
                 card.innerHTML = `
-                    <span class="tag-status">${ch.tag}</span>
-                    <span class="chapter-no">CHAPTER ${ch.id}</span>
-                    <div class="chapter-name">${ch.name}</div>
+                    <div style="color:var(--neon-blue); font-weight:bold; font-size:12px; margin-bottom:5px;">MISSION ${ch.id}</div>
+                    <div style="font-size:18px; font-weight:600;">${ch.name}</div>
                 `;
                 grid.appendChild(card);
             });
-            grid.style.opacity = "1";
-            grid.style.transform = "translateY(0)";
-        }, 200);
-    }
-</script>
-
+        }
+    </script>
 </body>
 </html>
