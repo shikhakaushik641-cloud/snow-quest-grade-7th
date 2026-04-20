@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OMNI-GRID | Expedition Hub Class 7</title>
+    <title>OMNI-GRID | Expedition Hub</title>
     <style>
         :root {
             --bg-space: #020b18;
@@ -19,13 +19,12 @@
         body {
             background: radial-gradient(circle at center, #101d35 0%, var(--bg-space) 100%);
             color: #fff;
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             display: flex;
             height: 100vh;
             overflow: hidden;
         }
 
-        /* --- THEME OVERLAY (Stars & Tech Lines) --- */
         .overlay {
             position: absolute;
             width: 100%; height: 100%;
@@ -34,16 +33,16 @@
             pointer-events: none;
         }
 
-        /* --- SIDEBAR NAVIGATION --- */
+        /* --- SIDEBAR --- */
         #sidebar {
             width: 320px;
             background: var(--glass);
-            backdrop-filter: blur(15px);
+            backdrop-filter: blur(20px);
             border-right: 1px solid rgba(0, 212, 255, 0.2);
             padding: 50px 25px;
             display: flex;
             flex-direction: column;
-            gap: 20px;
+            gap: 15px;
             z-index: 10;
         }
 
@@ -51,36 +50,28 @@
             position: relative;
             background: var(--tab-white);
             color: var(--text-dark);
-            padding: 20px;
-            border-radius: 15px;
-            font-weight: 900;
-            font-size: 14px;
+            padding: 18px 25px;
+            border-radius: 12px;
+            font-weight: 800;
+            font-size: 13px;
             text-transform: uppercase;
             cursor: pointer;
-            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             border: 2px solid transparent;
-            overflow: hidden;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
-        }
-
-        /* YELLOW STREAK ANIMATION */
-        .subject-tab::after {
-            content: '';
-            position: absolute;
-            top: 0; left: -100%;
-            width: 100%; height: 4px;
-            background: var(--neon-yellow);
-            transition: 0.4s;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
         }
 
         .subject-tab:hover {
-            transform: translateX(15px);
-            box-shadow: 0 0 30px rgba(251, 255, 0, 0.4);
-            border-color: var(--neon-yellow);
+            transform: translateX(10px);
+            background: #f0f0f0;
         }
 
-        .subject-tab:hover::after {
-            left: 100%;
+        .subject-tab.active {
+            background: var(--neon-blue);
+            color: white;
+            transform: translateX(15px);
+            border-color: var(--neon-yellow);
+            box-shadow: 0 0 20px rgba(0, 212, 255, 0.4);
         }
 
         /* --- MAIN STAGE --- */
@@ -94,8 +85,9 @@
         }
 
         header h1 {
-            font-size: 3.5rem;
-            letter-spacing: -2px;
+            font-size: 3rem;
+            font-weight: 900;
+            letter-spacing: -1px;
             margin-bottom: 40px;
             background: linear-gradient(to bottom, #fff, var(--neon-blue));
             -webkit-background-clip: text;
@@ -107,7 +99,7 @@
             grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
             gap: 20px;
             overflow-y: auto;
-            padding-bottom: 100px;
+            padding-bottom: 150px;
         }
 
         .chapter-card {
@@ -115,47 +107,81 @@
             border: 1px solid rgba(0, 212, 255, 0.1);
             padding: 25px;
             border-radius: 20px;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: cardEnter 0.5s ease forwards;
             transition: 0.3s;
-            animation: fadeIn 0.5s ease forwards;
+            cursor: pointer;
         }
 
         .chapter-card:hover {
-            background: rgba(0, 212, 255, 0.05);
+            background: rgba(0, 212, 255, 0.08);
             border-color: var(--neon-blue);
-            transform: translateY(-5px);
+            transform: scale(1.03);
         }
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
+        @keyframes cardEnter {
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* --- PENGUIN SNOW-QUEST FOOTER --- */
+        /* --- SPACE PENGUIN SECTION --- */
         .snow-ground {
             position: absolute;
             bottom: 0; left: 320px;
             width: calc(100% - 320px);
-            height: 120px;
-            background: linear-gradient(to top, #ffffff1a, transparent);
+            height: 100px;
+            background: linear-gradient(to top, rgba(255,255,255,0.1), transparent);
             pointer-events: none;
         }
 
-        .penguin-slider {
+        .penguin-container {
             position: absolute;
             bottom: 20px;
             width: 80px;
             height: 80px;
+            animation: slideLeft 15s linear infinite;
+        }
+
+        .penguin {
+            width: 100%;
+            height: 100%;
             background: url('https://img.icons8.com/color/96/penguin.png') no-repeat center;
             background-size: contain;
-            animation: slideLeft 15s linear infinite;
-            filter: drop-shadow(0 0 10px rgba(255,255,255,0.5));
+            position: relative;
+        }
+
+        /* THE NEON HELMET */
+        .helmet {
+            position: absolute;
+            top: -5px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 55px;
+            height: 50px;
+            border-radius: 50% 50% 40% 40%;
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.5);
+            backdrop-filter: blur(2px);
+            z-index: 2;
+        }
+
+        /* THE VISOR */
+        .helmet::after {
+            content: '';
+            position: absolute;
+            top: 15px;
+            left: 10%;
+            width: 80%;
+            height: 15px;
+            background: rgba(0, 212, 255, 0.6);
+            border-radius: 5px;
+            box-shadow: 0 0 10px var(--neon-blue);
         }
 
         @keyframes slideLeft {
-            from { right: -100px; transform: rotate(-5deg); }
-            to { right: 110%; transform: rotate(5deg); }
+            from { right: -100px; }
+            to { right: 110%; }
         }
-
     </style>
 </head>
 <body>
@@ -163,23 +189,28 @@
     <div class="overlay"></div>
 
     <nav id="sidebar">
-        <div class="subject-tab" onmouseover="updateIndex('SCIENCE')">Science (Curiosity)</div>
-        <div class="subject-tab" onmouseover="updateIndex('MATHS')">Mathematics</div>
-        <div class="subject-tab" onmouseover="updateIndex('SST')">Exploring Society</div>
-        <div class="subject-tab" onmouseover="updateIndex('ENGLISH')">English (Poorvi)</div>
-        <div class="subject-tab" onmouseover="updateIndex('HINDI')">Hindi (Vasant)</div>
+        <div class="subject-tab" onclick="updateUI('SCIENCE', this)">Science (Curiosity)</div>
+        <div class="subject-tab" onclick="updateUI('MATHS', this)">Mathematics</div>
+        <div class="subject-tab" onclick="updateUI('SST', this)">Exploring Society</div>
+        <div class="subject-tab" onclick="updateUI('ENGLISH', this)">English (Poorvi)</div>
+        <div class="subject-tab" onclick="updateUI('HINDI', this)">Hindi (Vasant)</div>
     </nav>
 
     <main id="main-stage">
         <header>
-            <h1 id="subject-title">OMNI-GRID HUB</h1>
+            <h1 id="subject-title">HUB INITIALIZING...</h1>
         </header>
-        <div id="index-grid">
-            </div>
+        <div id="index-grid"></div>
 
         <div class="snow-ground">
-            <div class="penguin-slider" style="animation-duration: 12s; bottom: 10px;"></div>
-            <div class="penguin-slider" style="animation-duration: 18s; bottom: 40px; animation-delay: 5s;"></div>
+            <div class="penguin-container" style="animation-duration: 12s; bottom: 10px;">
+                <div class="helmet"></div>
+                <div class="penguin"></div>
+            </div>
+            <div class="penguin-container" style="animation-duration: 18s; bottom: 35px; animation-delay: 5s;">
+                <div class="helmet" style="border-color: var(--neon-yellow);"></div>
+                <div class="penguin"></div>
+            </div>
         </div>
     </main>
 
@@ -223,23 +254,36 @@
             ]
         };
 
-        function updateIndex(subject) {
+        function updateUI(subject, el) {
             const grid = document.getElementById('index-grid');
             const title = document.getElementById('subject-title');
-            
-            title.innerText = subject + " INDEX";
-            grid.innerHTML = ""; // Clear current
 
-            curriculum[subject].forEach(ch => {
+            // Set active tab
+            document.querySelectorAll('.subject-tab').forEach(t => t.classList.remove('active'));
+            el.classList.add('active');
+
+            // Update Title
+            title.innerText = subject + " MISSIONS";
+            
+            // Clear and Repopulate with stagger
+            grid.innerHTML = "";
+            curriculum[subject].forEach((ch, index) => {
                 const card = document.createElement('div');
                 card.className = 'chapter-card';
+                card.style.animationDelay = `${index * 0.05}s`;
                 card.innerHTML = `
-                    <div style="color:var(--neon-blue); font-weight:bold; font-size:12px; margin-bottom:5px;">MISSION ${ch.id}</div>
-                    <div style="font-size:18px; font-weight:600;">${ch.name}</div>
+                    <div style="color:var(--neon-blue); font-weight:bold; font-size:11px; margin-bottom:8px; letter-spacing:1px;">SECTOR ${ch.id}</div>
+                    <div style="font-size:18px; font-weight:600; color:#fff;">${ch.name}</div>
                 `;
                 grid.appendChild(card);
             });
         }
+
+        // Auto-load first subject
+        window.onload = () => {
+            const firstTab = document.querySelector('.subject-tab');
+            updateUI('SCIENCE', firstTab);
+        };
     </script>
 </body>
 </html>
