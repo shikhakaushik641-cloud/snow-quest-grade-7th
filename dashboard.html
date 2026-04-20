@@ -1,249 +1,883 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OMNI-GRID | Expedition Hub Class 7</title>
-    <style>
-        :root {
-            --bg-space: #020b18;
-            --neon-blue: #00d4ff;
-            --neon-yellow: #fbff00;
-            --glass-bg: rgba(255, 255, 255, 0.05);
-            --card-border: rgba(0, 212, 255, 0.3);
-        }
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Snow Quest — Grade 7 Dashboard | OMNI-GRID</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet"/>
+<style>
+/* ═══════════════════ RESET ═══════════════════ */
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+html,body{width:100%;height:100%;overflow:hidden;background:#020c1a;}
+#app{width:100vw;height:100vh;position:relative;overflow:hidden;font-family:'Rajdhani',sans-serif;}
 
-        * { box-sizing: border-box; margin: 0; padding: 0; }
+/* ═══════════════════ SCENE CANVASES ═══════════════════ */
+canvas{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;}
+#cBg     {z-index:0;}
+#cAurora {z-index:1;}
+#cStars  {z-index:2;}
+#cSnow   {z-index:3;}
+#cTrail  {z-index:20;pointer-events:all;}
 
-        body {
-            background: #050f21 url('https://www.transparenttextures.com/patterns/stardust.png');
-            color: #fff;
-            font-family: 'Segoe UI', system-ui, sans-serif;
-            display: flex;
-            height: 100vh;
-            overflow: hidden;
-        }
+/* ═══════════════════ LAYOUT SHELL ═══════════════════ */
+#shell {
+  position:absolute;top:0;left:0;
+  width:100%;height:calc(100% - 115px);
+  z-index:8;display:flex;
+  pointer-events:all;
+}
 
-        /* --- SIDEBAR --- */
-        #sidebar {
-            width: 320px;
-            background: rgba(10, 25, 49, 0.8);
-            backdrop-filter: blur(20px);
-            border-right: 1px solid var(--card-border);
-            padding: 40px 20px;
-            z-index: 100;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
+/* ═══════════════════ LEFT SIDEBAR ═══════════════════ */
+.sidebar {
+  width:270px;flex-shrink:0;
+  background:rgba(1,10,28,.85);
+  backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+  border-right:1px solid rgba(0,180,255,.12);
+  display:flex;flex-direction:column;
+  overflow:hidden;
+}
 
-        .subject-tab {
-            background: white;
-            color: #050f21;
-            padding: 15px 20px;
-            border-radius: 8px;
-            font-weight: 800;
-            text-transform: uppercase;
-            font-size: 13px;
-            cursor: pointer;
-            transition: 0.3s;
-            border: 2px solid transparent;
-        }
+/* Brand strip */
+.brand-strip {
+  padding:16px 18px 12px;
+  border-bottom:1px solid rgba(0,160,255,.1);
+  flex-shrink:0;
+}
+.brand-back {
+  display:flex;align-items:center;gap:8px;
+  text-decoration:none;color:rgba(0,200,255,.7);
+  font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:2px;
+  border:1px solid rgba(0,200,255,.22);padding:6px 12px;border-radius:4px;
+  background:rgba(0,20,50,.5);transition:all .22s;width:fit-content;
+}
+.brand-back:hover{color:#00e5ff;border-color:rgba(0,220,255,.5);background:rgba(0,35,75,.6);}
+.brand-title {
+  margin-top:10px;
+  font-family:'Orbitron',monospace;font-size:13px;font-weight:900;letter-spacing:3px;
+  background:linear-gradient(135deg,#80d8ff,#00e5ff);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+.brand-sub{font-family:'Share Tech Mono',monospace;font-size:8px;letter-spacing:2px;color:rgba(0,180,255,.4);margin-top:2px;}
 
-        .subject-tab.active {
-            background: var(--neon-blue);
-            color: white;
-            box-shadow: 0 0 15px var(--neon-blue);
-            transform: scale(1.05);
-        }
+/* Subject nav tabs */
+.nav-list{flex:1;overflow-y:auto;padding:14px 14px;display:flex;flex-direction:column;gap:6px;}
+.nav-list::-webkit-scrollbar{width:3px;}
+.nav-list::-webkit-scrollbar-thumb{background:rgba(0,150,255,.25);border-radius:2px;}
 
-        /* --- MAIN AREA --- */
-        #main-stage {
-            flex-grow: 1;
-            padding: 50px;
-            position: relative;
-        }
+.nav-tab {
+  display:flex;align-items:center;gap:12px;
+  padding:14px 16px;border-radius:10px;cursor:pointer;
+  background:#ffffff;
+  box-shadow:0 3px 16px rgba(0,0,0,.5),0 1px 4px rgba(0,0,0,.35);
+  border:2px solid transparent;
+  transition:transform .22s cubic-bezier(.34,1.56,.64,1),
+             box-shadow .22s ease,border-color .18s ease;
+  position:relative;overflow:hidden;user-select:none;
+}
+.nav-tab:hover,.nav-tab.active {
+  transform:translateX(8px) scale(1.03);
+  box-shadow:0 6px 28px rgba(0,0,0,.6),0 0 0 2.5px var(--tc);
+}
+.nav-tab.active {background:#fff;}
+.nav-tab::after{
+  content:'';position:absolute;left:0;top:0;bottom:0;width:4px;
+  background:var(--tc);border-radius:10px 0 0 10px;
+  transform:scaleY(0);transition:transform .28s cubic-bezier(.34,1.56,.64,1);
+}
+.nav-tab:hover::after,.nav-tab.active::after{transform:scaleY(1);}
 
-        #subject-title {
-            font-size: 3rem;
-            margin-bottom: 30px;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            text-shadow: 0 0 20px var(--neon-blue);
-        }
+.tab-ico {
+  width:38px;height:38px;border-radius:9px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;font-size:19px;
+  background:var(--tb);box-shadow:0 2px 8px rgba(0,0,0,.28);
+}
+.tab-txt{flex:1;min-width:0;}
+.tab-name{font-weight:700;font-size:14px;color:#0d1b8c;letter-spacing:.3px;line-height:1;}
+.tab-sub {font-size:10px;color:rgba(13,27,140,.48);letter-spacing:.5px;margin-top:1px;font-family:'Share Tech Mono',monospace;}
+.tab-n {
+  flex-shrink:0;width:26px;height:26px;border-radius:7px;
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Share Tech Mono',monospace;font-size:10px;font-weight:700;
+  background:var(--tb);color:var(--tc);
+}
 
-        #index-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 25px;
-        }
+/* ═══════════════════ RIGHT CONTENT ═══════════════════ */
+.content {
+  flex:1;display:flex;flex-direction:column;overflow:hidden;
+  background:rgba(2,10,28,.6);backdrop-filter:blur(6px);
+}
 
-        .chapter-card {
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid var(--card-border);
-            backdrop-filter: blur(10px);
-            padding: 30px;
-            border-radius: 15px;
-            position: relative;
-            transition: 0.4s;
-            animation: slideIn 0.5s ease forwards;
-        }
+/* Mission header */
+.mission-header{
+  padding:20px 28px 16px;flex-shrink:0;
+  border-bottom:1px solid rgba(0,160,220,.12);
+  background:rgba(1,8,24,.45);
+}
+.mission-eyebrow{
+  font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:3px;
+  color:rgba(0,180,255,.5);margin-bottom:6px;
+}
+.mission-title{
+  font-family:'Orbitron',monospace;font-size:clamp(20px,3vw,34px);
+  font-weight:900;color:#fff;letter-spacing:2px;line-height:1;
+  filter:drop-shadow(0 0 22px rgba(0,200,255,.28));
+}
+.mission-desc{
+  font-size:12px;color:rgba(120,185,215,.55);letter-spacing:1px;margin-top:5px;
+}
+.mission-meta{display:flex;align-items:center;gap:14px;margin-top:10px;}
+.meta-pill{
+  font-family:'Share Tech Mono',monospace;font-size:8px;letter-spacing:1.5px;
+  padding:4px 10px;border-radius:3px;
+  background:rgba(0,200,255,.08);border:1px solid rgba(0,200,255,.25);color:rgba(0,200,255,.75);
+}
+.prog-wrap{display:flex;align-items:center;gap:8px;margin-left:auto;}
+.prog-bar-bg{width:120px;height:4px;background:rgba(0,80,130,.3);border-radius:2px;overflow:hidden;}
+.prog-bar-fill{height:100%;border-radius:2px;transition:width .6s ease;}
+.prog-label{font-family:'Share Tech Mono',monospace;font-size:9px;color:rgba(0,180,255,.6);}
 
-        .chapter-card:hover {
-            border-color: var(--neon-blue);
-            box-shadow: 0 0 30px rgba(0, 212, 255, 0.2);
-            transform: translateY(-10px);
-        }
+/* Sector grid scroll */
+.sector-scroll{flex:1;overflow-y:auto;padding:22px 24px 16px;}
+.sector-scroll::-webkit-scrollbar{width:4px;}
+.sector-scroll::-webkit-scrollbar-thumb{background:rgba(0,150,255,.28);border-radius:2px;}
 
-        .sector-tag {
-            color: var(--neon-blue);
-            font-size: 12px;
-            font-weight: bold;
-            margin-bottom: 10px;
-            display: block;
-        }
+/* Sector grid */
+.sector-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(280px,1fr));
+  gap:14px;
+}
 
-        /* --- SNOW & PENGUINS --- */
-        .snow-landscape {
-            position: absolute;
-            bottom: 0; left: 0;
-            width: 100%;
-            height: 140px;
-            background: linear-gradient(to top, #ffffff22 0%, transparent 100%);
-            border-top: 2px solid rgba(255,255,255,0.1);
-            pointer-events: none;
-        }
+/* Sector card — matching screenshot dark teal */
+.sector-card{
+  background:rgba(4,18,45,.92);
+  border:1px solid rgba(0,150,200,.22);
+  border-radius:14px;padding:20px 22px 18px;
+  cursor:pointer;transition:all .24s ease;
+  position:relative;overflow:hidden;
+  min-height:110px;
+}
+.sector-card::before{
+  content:'';position:absolute;inset:0;border-radius:14px;
+  background:linear-gradient(135deg,rgba(0,180,255,.04) 0%,transparent 60%);
+  pointer-events:none;
+}
+.sector-card:hover{
+  border-color:var(--sc);
+  background:rgba(4,22,56,.98);
+  transform:translateY(-4px);
+  box-shadow:0 12px 40px rgba(0,0,0,.5),0 0 0 1px var(--sc)44;
+}
+.sector-card:hover .sc-glow{opacity:1;}
+.sc-glow{
+  position:absolute;top:-30px;right:-30px;
+  width:100px;height:100px;border-radius:50%;
+  background:radial-gradient(circle,var(--sc)44 0%,transparent 70%);
+  opacity:0;transition:opacity .3s;pointer-events:none;
+}
+.sc-eye{
+  font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:2px;
+  color:var(--sc);margin-bottom:8px;font-weight:700;
+}
+.sc-title{
+  font-family:'Rajdhani',sans-serif;font-weight:700;
+  font-size:clamp(14px,1.6vw,18px);color:#fff;line-height:1.3;
+}
+.sc-sub{font-size:11px;color:rgba(120,180,215,.5);margin-top:5px;line-height:1.4;}
+.sc-badge-row{display:flex;align-items:center;gap:7px;margin-top:12px;}
+.sc-badge{
+  font-family:'Share Tech Mono',monospace;font-size:7.5px;letter-spacing:1px;
+  padding:3px 8px;border-radius:3px;
+}
+.sc-badge.done{background:rgba(0,200,120,.12);border:1px solid rgba(0,200,120,.35);color:#00e87a;}
+.sc-badge.lock{background:rgba(60,80,120,.18);border:1px solid rgba(60,80,120,.3);color:rgba(120,150,200,.45);}
 
-        .ice-surface {
-            position: absolute;
-            bottom: 0;
-            width: 100%;
-            height: 40px;
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(5px);
-        }
+/* Content pane transitions */
+.cpane{display:none;flex-direction:column;height:100%;opacity:0;transform:translateX(20px);}
+.cpane.active{
+  display:flex;
+  animation:paneIn .28s cubic-bezier(.25,.46,.45,.94) forwards;
+}
+@keyframes paneIn{
+  from{opacity:0;transform:translateX(20px);}
+  to{opacity:1;transform:translateX(0);}
+}
 
-        .penguin-squad {
-            position: absolute;
-            bottom: 25px;
-            width: 80px;
-            height: 80px;
-            animation: march 20s linear infinite;
-        }
+/* ═══════════════════ ANIMATED CHARACTERS ═══════════════════ */
+#chars-layer{
+  position:absolute;bottom:115px;right:20px;
+  z-index:9;pointer-events:none;
+  display:flex;align-items:flex-end;gap:18px;
+}
+.char{animation:charFloat 4s ease-in-out infinite;}
+.char:nth-child(2){animation-delay:.8s;}
+.char:nth-child(3){animation-delay:1.6s;}
+@keyframes charFloat{
+  0%,100%{transform:translateY(0);}
+  50%{transform:translateY(-8px);}
+}
 
-        .penguin-img {
-            width: 60px;
-            height: 60px;
-            background: url('https://img.icons8.com/color/96/penguin.png') no-repeat center;
-            background-size: contain;
-            position: absolute;
-            bottom: 0;
-        }
-
-        /* NEON HELMET */
-        .helmet {
-            position: absolute;
-            top: -5px;
-            left: 2px;
-            width: 55px;
-            height: 45px;
-            background: rgba(255, 255, 255, 0.2);
-            border: 2px solid rgba(0, 212, 255, 0.6);
-            border-radius: 50% 50% 30% 30%;
-            box-shadow: 0 0 10px var(--neon-blue);
-        }
-
-        .visor {
-            position: absolute;
-            top: 12px;
-            left: 10%;
-            width: 80%;
-            height: 12px;
-            background: var(--neon-blue);
-            border-radius: 3px;
-            opacity: 0.8;
-            box-shadow: 0 0 15px var(--neon-blue);
-        }
-
-        @keyframes march {
-            from { right: -100px; }
-            to { right: 110%; }
-        }
-
-        @keyframes slideIn {
-            from { opacity: 0; transform: scale(0.9); }
-            to { opacity: 1; transform: scale(1); }
-        }
-    </style>
+/* ═══════════════════ BOTTOM STRIP ═══════════════════ */
+.strip-label{
+  position:absolute;bottom:5px;right:22px;z-index:7;
+  font-family:'Share Tech Mono',monospace;font-size:7px;
+  letter-spacing:2px;color:rgba(0,180,255,.22);pointer-events:none;
+}
+</style>
 </head>
 <body>
+<div id="app">
 
-<nav id="sidebar">
-    <div class="subject-tab active" onclick="loadContent('SCIENCE', this)">Science (Curiosity)</div>
-    <div class="subject-tab" onclick="loadContent('MATHS', this)">Mathematics</div>
-    <div class="subject-tab" onclick="loadContent('SST', this)">Society</div>
-</nav>
+<!-- SCENE LAYERS -->
+<canvas id="cBg"></canvas>
+<canvas id="cAurora"></canvas>
+<canvas id="cStars"></canvas>
+<canvas id="cSnow"></canvas>
 
-<main id="main-stage">
-    <h1 id="subject-title">SCIENCE MISSIONS</h1>
-    <div id="index-grid">
-        </div>
+<!-- ANIMATED FLOAT CHARACTERS -->
+<div id="chars-layer">
+  <div class="char" style="animation-delay:0s;font-size:36px;filter:drop-shadow(0 0 10px rgba(0,200,255,.6));">&#10052;</div>
+  <div class="char" style="animation-delay:1.2s;font-size:28px;filter:drop-shadow(0 0 8px rgba(100,220,255,.5));">&#10053;</div>
+  <div class="char" style="animation-delay:2.2s;font-size:32px;filter:drop-shadow(0 0 12px rgba(0,180,255,.5));">&#10054;</div>
+</div>
 
-    <div class="snow-landscape">
-        <div class="penguin-squad" style="animation-duration: 15s;">
-            <div class="helmet"><div class="visor"></div></div>
-            <div class="penguin-img"></div>
-        </div>
-        <div class="penguin-squad" style="animation-duration: 25s; animation-delay: 4s; bottom: 40px;">
-            <div class="helmet" style="border-color: var(--neon-yellow);"><div class="visor" style="background: var(--neon-yellow); box-shadow: 0 0 15px var(--neon-yellow);"></div></div>
-            <div class="penguin-img"></div>
-        </div>
-        <div class="ice-surface"></div>
+<!-- MAIN SHELL: sidebar + content (stops 115px from bottom for penguins) -->
+<div id="shell">
+
+  <!-- LEFT SIDEBAR -->
+  <nav class="sidebar">
+    <div class="brand-strip">
+      <a class="brand-back" href="index.html">&#8592; EXPEDITION HQ</a>
+      <div class="brand-title">SNOW QUEST</div>
+      <div class="brand-sub">CLASS 7 &nbsp;·&nbsp; NCERT 2024 &nbsp;·&nbsp; OMNI-GRID</div>
     </div>
-</main>
+    <div class="nav-list" id="navList">
 
+      <div class="nav-tab active" data-s="science" style="--tc:#00c8ff;--tb:rgba(0,150,220,.15);">
+        <div class="tab-ico">&#9883;</div>
+        <div class="tab-txt">
+          <div class="tab-name">Science</div>
+          <div class="tab-sub">CURIOSITY</div>
+        </div>
+        <div class="tab-n">18</div>
+      </div>
+
+      <div class="nav-tab" data-s="maths" style="--tc:#ff9900;--tb:rgba(200,120,0,.15);">
+        <div class="tab-ico">&#8730;</div>
+        <div class="tab-txt">
+          <div class="tab-name">Mathematics</div>
+          <div class="tab-sub">GANIT</div>
+        </div>
+        <div class="tab-n">15</div>
+      </div>
+
+      <div class="nav-tab" data-s="english" style="--tc:#ff4f8b;--tb:rgba(200,50,100,.15);">
+        <div class="tab-ico">&#9997;</div>
+        <div class="tab-txt">
+          <div class="tab-name">English</div>
+          <div class="tab-sub">HONEYCOMB</div>
+        </div>
+        <div class="tab-n">20</div>
+      </div>
+
+      <div class="nav-tab" data-s="hindi" style="--tc:#ffdd00;--tb:rgba(200,170,0,.15);">
+        <div class="tab-ico">&#128217;</div>
+        <div class="tab-txt">
+          <div class="tab-name">Hindi</div>
+          <div class="tab-sub">वसंत भाग 2</div>
+        </div>
+        <div class="tab-n">20</div>
+      </div>
+
+      <div class="nav-tab" data-s="social" style="--tc:#00e5cc;--tb:rgba(0,170,140,.15);">
+        <div class="tab-ico">&#127758;</div>
+        <div class="tab-txt">
+          <div class="tab-name">Social Science</div>
+          <div class="tab-sub">HISTORY·GEO·CIVICS</div>
+        </div>
+        <div class="tab-n">28</div>
+      </div>
+
+      <div class="nav-tab" data-s="sanskrit" style="--tc:#b44fff;--tb:rgba(140,50,220,.15);">
+        <div class="tab-ico">&#9700;</div>
+        <div class="tab-txt">
+          <div class="tab-name">Sanskrit</div>
+          <div class="tab-sub">रुचिरा भाग 2</div>
+        </div>
+        <div class="tab-n">15</div>
+      </div>
+
+    </div>
+  </nav>
+
+  <!-- RIGHT CONTENT AREA -->
+  <div class="content" id="contentArea">
+    <!-- Panes injected by JS -->
+  </div>
+
+</div><!-- /shell -->
+
+<!-- PENGUIN CANVAS — z:20, always on top -->
+<canvas id="cTrail" style="z-index:20;pointer-events:all;"></canvas>
+
+<div class="strip-label">CRYO-STATION ALPHA // OMNI-GRID SYS-7</div>
+</div><!-- /app -->
+
+<script src="penguin-engine.js"></script>
+<script src="scene.js"></script>
 <script>
-    const data = {
-        "SCIENCE": [
-            {id: "01", name: "The Ever-Evolving World"},
-            {id: "02", name: "Acid, Bases and Salts"},
-            {id: "03", name: "Electricity & Circuits"},
-            {id: "04", name: "Metals & Non-metals"}
-        ],
-        "MATHS": [
-            {id: "01", name: "Integers"},
-            {id: "02", name: "Fractions & Decimals"}
-        ]
-    };
+/* ═══════════════════════════════════════════════
+   SUBJECT DATA — NCERT CLASS 7 (2024)
+═══════════════════════════════════════════════ */
+const SUBS = {
+  science:{
+    label:'SCIENCE MISSIONS', color:'#00c8ff', progress:33,
+    meta:['NCERT CURIOSITY','18 SECTORS','SCIENCE'],
+    desc:'Biology · Physics · Chemistry · Environment · Technology',
+    chapters:[
+      {t:'The Ever-Evolving World',             s:'Evolution of Life, Adaptation & Change',         done:true },
+      {t:'Silk, Cotton and Wool',               s:'Natural Fibres, Processing, Weaving',            done:true },
+      {t:'Separation of Substances',            s:'Methods: Filtration, Evaporation, Distillation', done:true },
+      {t:'Acid, Bases and Salts',               s:'Indicators, pH Scale, Neutralisation',           done:true },
+      {t:'Physical and Chemical Changes',       s:'Reversible & Irreversible, Rusting, Burning',    done:true },
+      {t:'Electricity & Circuits',              s:'Electric Cell, Bulb, Conductors, Insulators',    done:false},
+      {t:'Metals & Non-metals',                 s:'Properties, Uses, Reactions',                    done:false},
+      {t:'Light',                               s:'Reflection, Plane Mirror, Lens, Human Eye',      done:false},
+      {t:'Motion & Time',                       s:'Speed, Distance-Time Graph, Simple Pendulum',    done:false},
+      {t:'Reproduction in Plants',              s:'Sexual, Asexual, Pollination, Seed Dispersal',   done:false},
+      {t:'Transportation in Animals & Plants',  s:'Blood, Heart, Xylem, Phloem',                    done:false},
+      {t:'Respiration in Organisms',            s:'Aerobic & Anaerobic, Breathing',                 done:false},
+      {t:'Nutrition in Plants',                 s:'Photosynthesis, Modes of Nutrition',             done:false},
+      {t:'Nutrition in Animals',                s:'Digestive System, Ruminants',                    done:false},
+      {t:'Weather, Climate & Adaptations',      s:'Climate Zones, Polar & Tropical Life',           done:false},
+      {t:'Winds, Storms & Cyclones',            s:'Air Pressure, Cyclone Formation',                done:false},
+      {t:'Water — A Precious Resource',         s:'Water Cycle, Groundwater, Scarcity',             done:false},
+      {t:'Forests — Our Lifeline',              s:'Canopy, Decomposers, Ecosystem Services',        done:false},
+    ]
+  },
+  maths:{
+    label:'MATHS MISSIONS', color:'#ff9900', progress:40,
+    meta:['NCERT GANIT','15 SECTORS','MATHEMATICS'],
+    desc:'Number Systems · Algebra · Geometry · Data Handling · Mensuration',
+    chapters:[
+      {t:'Integers',                            s:'Properties, Multiplication & Division',          done:true },
+      {t:'Fractions & Decimals',                s:'Operations on Fractions & Decimals',             done:true },
+      {t:'Data Handling',                       s:'Mean, Median, Mode, Bar Graph, Probability',     done:true },
+      {t:'Simple Equations',                    s:'Forming & Solving Equations, Applications',      done:true },
+      {t:'Lines & Angles',                      s:'Complementary, Supplementary, Transversals',     done:true },
+      {t:'The Triangle & Its Properties',       s:'Angle Sum, Pythagoras, Median, Altitude',        done:true },
+      {t:'Congruence of Triangles',             s:'SSS, SAS, ASA, AAS, RHS Criteria',               done:false},
+      {t:'Comparing Quantities',                s:'Ratios, Percentages, Profit & Loss, SI',         done:false},
+      {t:'Rational Numbers',                    s:'Number Line, Operations, Properties',            done:false},
+      {t:'Practical Geometry',                  s:'Constructing Triangles with Given Conditions',   done:false},
+      {t:'Perimeter & Area',                    s:'Square, Rectangle, Triangle, Circle',            done:false},
+      {t:'Algebraic Expressions',               s:'Terms, Factors, Like & Unlike Terms',            done:false},
+      {t:'Exponents & Powers',                  s:'Laws of Exponents, Standard Form',               done:false},
+      {t:'Symmetry',                            s:'Lines of Symmetry, Rotational Symmetry',         done:false},
+      {t:"Visualising Solid Shapes",            s:"Nets, Isometric Sketches, Euler's Formula",      done:false},
+    ]
+  },
+  english:{
+    label:'ENGLISH MISSIONS', color:'#ff4f8b', progress:55,
+    meta:['HONEYCOMB','ALIEN HAND','20 SECTORS'],
+    desc:'Prose · Poetry · Supplementary Reader · Grammar',
+    chapters:[
+      {t:'Three Questions',                     s:'Honeycomb Ch 1 — Prose, Values & Wisdom',       done:true },
+      {t:'A Gift of Chappals',                  s:'Honeycomb Ch 2 — Prose, Compassion & Sharing',  done:true },
+      {t:'Gopal & the Hilsa Fish',              s:'Honeycomb Ch 3 — Prose, Humour & Wit',          done:true },
+      {t:'The Ashes That Made Trees Bloom',     s:'Honeycomb Ch 4 — Prose, Karma & Values',        done:true },
+      {t:'Quality',                             s:'Honeycomb Ch 5 — Prose, Honesty & Craft',       done:true },
+      {t:'Expert Detectives',                   s:'Honeycomb Ch 6 — Prose, Observation',           done:true },
+      {t:'The Invention of Vita-Wonk',          s:'Honeycomb Ch 7 — Prose, Imagination',           done:true },
+      {t:'Fire: Friend and Foe',                s:'Honeycomb Ch 8 — Prose, Science & Safety',      done:true },
+      {t:'A Bicycle in Good Repair',            s:'Honeycomb Ch 9 — Prose, Humour',                done:true },
+      {t:'The Story of Cricket',                s:'Honeycomb Ch 10 — Prose, Sport & History',      done:true },
+      {t:'The Tiny Teacher',                    s:'Alien Hand Ch 1 — Ants, Nature Study',          done:true },
+      {t:'Bringing Up Kari',                    s:'Alien Hand Ch 2 — Elephants, Human Bond',       done:false},
+      {t:'The Desert',                          s:'Alien Hand Ch 3 — Ecosystems, Adaptation',      done:false},
+      {t:'The Cop and the Anthem',              s:'Alien Hand Ch 4 — O. Henry, Irony',             done:false},
+      {t:"Golu Grows a Nose",                   s:'Alien Hand Ch 5 — Just So Stories',             done:false},
+      {t:'I Want Something in a Cage',          s:'Alien Hand Ch 6 — Freedom, Values',             done:false},
+      {t:'Chandni',                             s:"Alien Hand Ch 7 — A Goat's Story",              done:false},
+      {t:'The Bear Story',                      s:'Alien Hand Ch 8 — Animal Bond',                 done:false},
+      {t:'A Tiger in the House',                s:'Alien Hand Ch 9 — Wildlife, Ruskin Bond',       done:false},
+      {t:'An Alien Hand',                       s:'Alien Hand Ch 10 — Science Fiction',            done:false},
+    ]
+  },
+  hindi:{
+    label:'HINDI MISSIONS', color:'#ffdd00', progress:25,
+    meta:['वसंत भाग 2','दूर्वा','20 SECTORS'],
+    desc:'गद्य · पद्य · व्याकरण · रचना · संस्मरण',
+    chapters:[
+      {t:'हम पंछी उन्मुक्त गगन के',              s:'वसंत 1 — कविता, स्वतंत्रता',                   done:true },
+      {t:'दादी माँ',                              s:'वसंत 2 — संस्मरण, पारिवारिक रिश्ते',           done:true },
+      {t:'हिमालय की बेटियाँ',                     s:'वसंत 3 — निबंध, नदियाँ और प्रकृति',            done:true },
+      {t:'कठपुतली',                               s:'वसंत 4 — कविता, स्वतंत्रता की चाह',            done:true },
+      {t:'मिठाईवाला',                             s:'वसंत 5 — कहानी, करुणा और व्यापार',             done:true },
+      {t:'रक्त और हमारा शरीर',                    s:'वसंत 6 — विज्ञान लेख, स्वास्थ्य',              done:false},
+      {t:'पापा खो गए',                            s:'वसंत 7 — नाटक, बाल सुरक्षा',                  done:false},
+      {t:'शाम — एक किसान',                        s:'वसंत 8 — कविता, प्रकृति चित्रण',               done:false},
+      {t:'चिड़िया की बच्ची',                      s:'वसंत 9 — कहानी, साहस और स्वतंत्रता',           done:false},
+      {t:'अपूर्व अनुभव',                          s:'वसंत 10 — संस्मरण, जापान यात्रा',              done:false},
+      {t:'रहीम के दोहे',                          s:'वसंत 11 — दोहे, नीति और जीवन दर्शन',           done:false},
+      {t:'कंचा',                                  s:'वसंत 12 — कहानी, बचपन की यादें',               done:false},
+      {t:'एक तिनका',                              s:'वसंत 13 — कविता, विनम्रता का भाव',             done:false},
+      {t:'खानपान की बदलती तस्वीर',                s:'वसंत 14 — निबंध, सांस्कृतिक बदलाव',            done:false},
+      {t:'नीलकंठ',                                s:'वसंत 15 — रेखाचित्र, मोर पालन',                done:false},
+      {t:'भोर और बरखा',                           s:'वसंत 16 — कविता, भोर और वर्षा',                done:false},
+      {t:'वीर कुँवर सिंह',                        s:'वसंत 17 — जीवनी, 1857 का संग्राम',             done:false},
+      {t:'संघर्ष के कारण मैं तुनकमिज़ाज हो गया',  s:'वसंत 18 — साक्षात्कार, व्यक्तित्व',             done:false},
+      {t:'आश्रम का अनुमानित व्यय',                s:'वसंत 19 — लेखाजोखा, गाँधी जी',                 done:false},
+      {t:'विप्लव-गायन',                           s:'वसंत 20 — कविता, क्रांतिकारी भावना',            done:false},
+    ]
+  },
+  social:{
+    label:'SOCIAL SCIENCE MISSIONS', color:'#00e5cc', progress:20,
+    meta:['HISTORY','GEOGRAPHY','CIVICS · 28 SECTORS'],
+    desc:'Our Pasts II · Our Environment · Social & Political Life II',
+    chapters:[
+      {t:'Tracing Changes Through a Thousand Years', s:'History 1 — Sources, Maps, Perceptions',   done:true },
+      {t:'New Kings and Kingdoms',                   s:'History 2 — Rashtrakutas, Pratiharas',     done:true },
+      {t:'The Delhi Sultans',                        s:'History 3 — Raziya, Khaljis, Tughlaqs',    done:true },
+      {t:'The Mughal Empire',                        s:'History 4 — Akbar, Administration',        done:true },
+      {t:'Rulers and Buildings',                     s:'History 5 — Architecture, Temples',        done:false},
+      {t:'Towns, Traders and Craftspersons',         s:'History 6 — Trade Routes, Urban Life',     done:false},
+      {t:'Tribes, Nomads and Settled Communities',   s:'History 7 — Bhils, Gonds, Ahoms',          done:false},
+      {t:'Devotional Paths to the Divine',           s:'History 8 — Bhakti, Sufi Movements',       done:false},
+      {t:'The Making of Regional Cultures',          s:'History 9 — Kathak, Kerala, Rajputs',      done:false},
+      {t:'Eighteenth-Century Political Formations',  s:'History 10 — Mughals, Marathas, Sikhs',    done:false},
+      {t:'Environment',                              s:'Geography 1 — Natural & Human Environment',done:true },
+      {t:'Inside Our Earth',                         s:'Geography 2 — Layers, Rocks & Minerals',   done:false},
+      {t:'Our Changing Earth',                       s:'Geography 3 — Earthquakes, Volcanoes',     done:false},
+      {t:'Air',                                      s:'Geography 4 — Atmosphere, Winds, Weather', done:false},
+      {t:'Water',                                    s:'Geography 5 — Ocean, Tides, Waves',        done:false},
+      {t:'Natural Vegetation and Wildlife',          s:'Geography 6 — Biomes, Forests',            done:false},
+      {t:'Human Environment — Settlement & Transport',s:'Geography 7 — Roads, Railways',           done:false},
+      {t:'Human Environment Interactions',           s:'Geography 8 — Amazon & Ganga Plain',       done:false},
+      {t:'Life in the Deserts',                      s:'Geography 9 — Sahara, Ladakh',             done:false},
+      {t:'On Equality',                              s:'Civics 1 — Constitutional Equality, Rights',done:true},
+      {t:'Role of Government in Health',             s:'Civics 2 — Public Health, Cuba Model',     done:false},
+      {t:'How the State Government Works',           s:'Civics 3 — MLA, CM, Legislature',          done:false},
+      {t:'Growing Up as Boys and Girls',             s:'Civics 4 — Gender, Stereotypes, Equality', done:false},
+      {t:'Women Change the World',                   s:"Civics 5 — Literacy, Women's Movements",   done:false},
+      {t:'Understanding Media',                      s:'Civics 6 — TV, Newspapers, Censorship',    done:false},
+      {t:'Markets Around Us',                        s:'Civics 7 — Weekly Market, Mall, Chain',    done:false},
+      {t:'A Shirt in the Market',                    s:'Civics 8 — Cotton to Shirt, Trade',        done:false},
+      {t:'Struggles for Equality',                   s:'Civics 9 — Movements, Constitution',       done:false},
+    ]
+  },
+  sanskrit:{
+    label:'SANSKRIT MISSIONS', color:'#b44fff', progress:15,
+    meta:['रुचिरा भाग 2','15 SECTORS','SANSKRIT'],
+    desc:'सुभाषितानि · व्याकरण · अनुवाद · कथाएँ · गीत',
+    chapters:[
+      {t:'सुभाषितानि',                              s:'पाठ 1 — नीतिपरक श्लोक, जीवन दर्शन',         done:true },
+      {t:'दुर्बुद्धिः विनश्यति',                     s:'पाठ 2 — कथा, मित्रभेद से शिक्षा',            done:true },
+      {t:'स्वावलम्बनम्',                             s:'पाठ 3 — निबन्ध, स्वावलंबन का महत्व',          done:false},
+      {t:'हास्यबालकविसम्मेलनम्',                     s:'पाठ 4 — नाटिका, हास्य कविता',                done:false},
+      {t:'पण्डिता रमाबाई',                          s:'पाठ 5 — जीवनी, महिला शिक्षा आंदोलन',          done:false},
+      {t:'सदाचारः',                                 s:'पाठ 6 — नैतिक आचरण और संस्कार',              done:false},
+      {t:'संकल्पः सिद्धिदायकः',                      s:'पाठ 7 — प्रेरक कथा, दृढ़ निश्चय',            done:false},
+      {t:'त्रिवर्णः ध्वजः',                          s:'पाठ 8 — राष्ट्रीय ध्वज, देशभक्ति',           done:false},
+      {t:'अहमपि विद्यालयं गमिष्यामि',                s:'पाठ 9 — शिक्षा और समानता',                   done:false},
+      {t:'विश्वबन्धुत्वम्',                           s:'पाठ 10 — वसुधैव कुटुम्बकम् की भावना',         done:false},
+      {t:'समवायो हि दुर्जयः',                         s:'पाठ 11 — एकता और सहयोग की शक्ति',            done:false},
+      {t:'विद्याधनम्',                               s:'पाठ 12 — ज्ञान सर्वश्रेष्ठ धन है',           done:false},
+      {t:'अमृतं संस्कृतम्',                          s:'पाठ 13 — संस्कृत भाषा की श्रेष्ठता',          done:false},
+      {t:'अनारिकायाः जिज्ञासा',                      s:'पाठ 14 — बाल कथा, जिज्ञासु स्वभाव',          done:false},
+      {t:'लालनगीतम्',                                s:'पाठ 15 — गीत, मातृभाषा प्रेम',               done:false},
+    ]
+  }
+};
 
-    function loadContent(subject, btn) {
-        // Handle Active State
-        document.querySelectorAll('.subject-tab').forEach(t => t.classList.remove('active'));
-        btn.classList.add('active');
-        
-        // Update Grid
-        const grid = document.getElementById('index-grid');
-        const title = document.getElementById('subject-title');
-        title.innerText = subject + " MISSIONS";
-        grid.innerHTML = "";
+/* ═══════════════════════════════════════════════
+   BUILD PANE HTML
+═══════════════════════════════════════════════ */
+function buildPane(key){
+  const d=SUBS[key], done=d.chapters.filter(c=>c.done).length;
+  const pane=document.createElement('div');
+  pane.className='cpane';pane.id='pane-'+key;
 
-        if(data[subject]) {
-            data[subject].forEach((item, i) => {
-                const card = document.createElement('div');
-                card.className = 'chapter-card';
-                card.style.animationDelay = (i * 0.1) + "s";
-                card.innerHTML = `
-                    <span class="sector-tag">SECTOR ${item.id}</span>
-                    <h3>${item.name}</h3>
-                `;
-                grid.appendChild(card);
-            });
-        }
+  pane.innerHTML=`
+    <div class="mission-header">
+      <div class="mission-eyebrow">OMNI-GRID CRYO-STATION ALPHA · CLASS 7</div>
+      <div class="mission-title" style="color:#fff;filter:drop-shadow(0 0 20px ${d.color}66);">${d.label}</div>
+      <div class="mission-desc">${d.desc}</div>
+      <div class="mission-meta">
+        ${d.meta.map(m=>`<div class="meta-pill">${m}</div>`).join('')}
+        <div class="prog-wrap">
+          <div class="prog-bar-bg"><div class="prog-bar-fill" style="width:${d.progress}%;background:linear-gradient(90deg,${d.color}88,${d.color});"></div></div>
+          <div class="prog-label">${done}/${d.chapters.length} · ${d.progress}%</div>
+        </div>
+      </div>
+    </div>
+    <div class="sector-scroll"><div class="sector-grid" id="grid-${key}"></div></div>`;
+
+  const grid=pane.querySelector('#grid-'+key);
+  d.chapters.forEach((ch,i)=>{
+    const card=document.createElement('div');
+    card.className='sector-card';
+    card.style.cssText=`--sc:${d.color};`;
+    card.innerHTML=`
+      <div class="sc-glow"></div>
+      <div class="sc-eye">SECTOR ${String(i+1).padStart(2,'0')}</div>
+      <div class="sc-title">${ch.t}</div>
+      <div class="sc-sub">${ch.s}</div>
+      <div class="sc-badge-row">
+        <div class="sc-badge ${ch.done?'done':'lock'}">${ch.done?'&#10003; TESTING ZONE':'LOCKED'}</div>
+        ${ch.done?`<div class="sc-badge done" style="background:rgba(0,180,255,.1);border-color:rgba(0,180,255,.3);color:#00c8ff;">COMPLETED</div>`:''}
+      </div>`;
+    card.addEventListener('click',()=>{
+      card.style.boxShadow=`0 0 32px ${d.color}55`;
+      setTimeout(()=>card.style.boxShadow='',800);
+    });
+    grid.appendChild(card);
+  });
+  return pane;
+}
+
+/* ═══════════════════════════════════════════════
+   RENDER + SWITCH LOGIC
+═══════════════════════════════════════════════ */
+const contentArea=document.getElementById('contentArea');
+let current='science', switchT=null;
+
+// Build all panes up front
+Object.keys(SUBS).forEach(k=>{
+  const p=buildPane(k);
+  contentArea.appendChild(p);
+});
+
+function activate(key){
+  if(key===current) return;
+  current=key;
+  // Tabs
+  document.querySelectorAll('.nav-tab').forEach(t=>{
+    t.classList.toggle('active',t.dataset.s===key);
+  });
+  // Panes
+  document.querySelectorAll('.cpane').forEach(p=>p.classList.remove('active'));
+  const pane=document.getElementById('pane-'+key);
+  if(pane) pane.classList.add('active');
+}
+
+// Activate first
+document.getElementById('pane-science').classList.add('active');
+
+// Hover + click
+document.querySelectorAll('.nav-tab').forEach(tab=>{
+  tab.addEventListener('mouseenter',()=>{
+    clearTimeout(switchT);
+    switchT=setTimeout(()=>activate(tab.dataset.s),70);
+  });
+  tab.addEventListener('mouseleave',()=>clearTimeout(switchT));
+  tab.addEventListener('click',()=>activate(tab.dataset.s));
+});
+
+/* ═══════════════════════════════════════════════
+   SCENE — deep midnight sky + strong aurora
+═══════════════════════════════════════════════ */
+(function(){
+  const cBg=document.getElementById('cBg');
+  const W=window.innerWidth, H=window.innerHeight;
+  cBg.width=W;cBg.height=H;
+  const ctx=cBg.getContext('2d');
+  const g=ctx.createLinearGradient(0,0,0,H);
+  g.addColorStop(0,'#010812');g.addColorStop(.35,'#030e1e');
+  g.addColorStop(.65,'#051624');g.addColorStop(1,'#061b2c');
+  ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+  // Moon
+  const mx=W*.8,my=H*.06;
+  for(let i=4;i>=1;i--){
+    const mg=ctx.createRadialGradient(mx,my,i*6,mx,my,i*35);
+    mg.addColorStop(0,`rgba(180,240,255,${.08/i})`);mg.addColorStop(1,'transparent');
+    ctx.fillStyle=mg;ctx.beginPath();ctx.arc(mx,my,i*35,0,Math.PI*2);ctx.fill();
+  }
+  const mc=ctx.createRadialGradient(mx,my,0,mx,my,24);
+  mc.addColorStop(0,'rgba(248,255,252,1)');mc.addColorStop(.6,'rgba(210,245,242,.9)');mc.addColorStop(1,'transparent');
+  ctx.fillStyle=mc;ctx.beginPath();ctx.arc(mx,my,24,0,Math.PI*2);ctx.fill();
+})();
+
+// Stars
+(function(){
+  const c=document.getElementById('cStars');
+  const W=window.innerWidth,H=window.innerHeight;
+  c.width=W;c.height=H;
+  const ctx=c.getContext('2d');
+  let sd=17; const rr=()=>{sd=(sd*1664525+1013904223)>>>0;return sd/4294967296;};
+  for(let i=0;i<240;i++){
+    const x=rr()*W,y=rr()*H*.62,r=rr()*1.7+.2,a=rr()*.75+.18;
+    ctx.fillStyle=`rgba(215,238,255,${a})`;ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fill();
+    if(r>1.2){
+      const sg=ctx.createRadialGradient(x,y,0,x,y,r*4.5);
+      sg.addColorStop(0,`rgba(180,220,255,${a*.28})`);sg.addColorStop(1,'transparent');
+      ctx.fillStyle=sg;ctx.beginPath();ctx.arc(x,y,r*4.5,0,Math.PI*2);ctx.fill();
     }
+  }
+  // Twinkle animation
+  const stars=[];
+  for(let i=0;i<60;i++) stars.push({x:Math.random()*W,y:Math.random()*H*.55,r:Math.random()*1.4+.4,phase:Math.random()*Math.PI*2,speed:Math.random()*.04+.02});
+  function twinkle(){
+    // Only redraw twinkle layer on a small sub-canvas to avoid full clear
+    stars.forEach(s=>{
+      s.phase+=s.speed;
+      const a=.25+.45*Math.sin(s.phase);
+      ctx.fillStyle=`rgba(255,255,255,${a})`;
+      ctx.beginPath();ctx.arc(s.x,s.y,s.r,0,Math.PI*2);ctx.fill();
+    });
+    requestAnimationFrame(twinkle);
+  }
+  twinkle();
+})();
 
-    // Initial Load
-    window.onload = () => loadContent('SCIENCE', document.querySelector('.subject-tab'));
+// Aurora — bright and clearly visible
+const aCanv=document.getElementById('cAurora');
+aCanv.width=window.innerWidth;aCanv.height=window.innerHeight;
+const aCtx=aCanv.getContext('2d');
+let at=0;
+const AURORA_BANDS=[
+  {yo:.12,amp:28,fr:.006,sp:.010,col:'rgba(0,210,130,',  a:.22},
+  {yo:.19,amp:22,fr:.009,sp:.014,col:'rgba(0,170,220,',  a:.18},
+  {yo:.26,amp:18,fr:.011,sp:.008,col:'rgba(80,0,210,',   a:.16},
+  {yo:.15,amp:20,fr:.005,sp:.017,col:'rgba(0,220,180,',  a:.15},
+  {yo:.22,amp:14,fr:.013,sp:.009,col:'rgba(0,180,255,',  a:.12},
+];
+function drawAurora(){
+  aCtx.clearRect(0,0,aCanv.width,aCanv.height);
+  const W=aCanv.width,H=aCanv.height;
+  AURORA_BANDS.forEach(b=>{
+    aCtx.beginPath();
+    for(let x=0;x<=W;x+=3){
+      const y=H*b.yo+Math.sin(x*b.fr+at*b.sp)*b.amp+Math.sin(x*b.fr*.55+at*b.sp*1.5)*b.amp*.45;
+      x===0?aCtx.moveTo(x,y):aCtx.lineTo(x,y);
+    }
+    aCtx.lineTo(W,0);aCtx.lineTo(0,0);aCtx.closePath();
+    aCtx.fillStyle=b.col+b.a+')';aCtx.fill();
+  });
+  at+=.30;
+  requestAnimationFrame(drawAurora);
+}
+drawAurora();
+
+// Snow
+const snC=document.getElementById('cSnow');
+snC.width=window.innerWidth;snC.height=window.innerHeight;
+const snX=snC.getContext('2d');
+const FLAKES=Array.from({length:160},()=>({
+  x:Math.random()*window.innerWidth,y:Math.random()*window.innerHeight,
+  r:Math.random()*2.8+.25,sp:Math.random()*1+.2,
+  dx:Math.random()*.55-.27,a:Math.random()*.5+.1,blr:Math.random()>.55
+}));
+function animSnow(){
+  snX.clearRect(0,0,snC.width,snC.height);
+  FLAKES.forEach(f=>{
+    if(f.blr){
+      const bg=snX.createRadialGradient(f.x,f.y,0,f.x,f.y,f.r*2.5);
+      bg.addColorStop(0,`rgba(200,235,255,${f.a})`);bg.addColorStop(1,'transparent');
+      snX.fillStyle=bg;snX.beginPath();snX.arc(f.x,f.y,f.r*2.5,0,Math.PI*2);snX.fill();
+    } else {
+      snX.fillStyle=`rgba(225,245,255,${f.a})`;snX.beginPath();snX.arc(f.x,f.y,f.r,0,Math.PI*2);snX.fill();
+    }
+    f.y+=f.sp;f.x+=f.dx+Math.sin(f.y*.025)*.28;
+    if(f.y>snC.height){f.y=-3;f.x=Math.random()*snC.width;}
+    if(f.x<0)f.x=snC.width;if(f.x>snC.width)f.x=0;
+  });
+  requestAnimationFrame(animSnow);
+}
+animSnow();
+
+/* ═══════════════════════════════════════════════
+   PENGUIN ENGINE — self-contained, no scene.js
+═══════════════════════════════════════════════ */
+(function(){
+  const trC=document.getElementById('cTrail');
+  const W=window.innerWidth,H=window.innerHeight;
+  trC.width=W;trC.height=H;
+  const trX=trC.getContext('2d');
+  const trails=[],particles=[];
+  const GROUND_Y=H-58;
+  const S=36;
+
+  function drawPeng(ctx,wx,gy,ph,sliding,wobA){
+    ctx.save();ctx.translate(wx,gy);
+    if(wobA!==0)ctx.rotate(wobA*Math.PI/180);
+    const bob=sliding?0:Math.sin(ph*2)*S*.015;
+    const aog=ctx.createRadialGradient(0,2,2,0,2,S*1.05);
+    aog.addColorStop(0,'rgba(0,12,30,.7)');aog.addColorStop(.5,'rgba(0,8,22,.32)');aog.addColorStop(1,'transparent');
+    ctx.fillStyle=aog;ctx.beginPath();ctx.ellipse(0,2,S*1.05,S*.18,0,0,Math.PI*2);ctx.fill();
+    if(sliding){ctx.rotate(Math.PI*.46);ctx.translate(0,-S*.18);ctx.scale(1,.54);}
+    if(!sliding){
+      [[-S*.25,0],[S*.25,0]].forEach(([fx],fi)=>{
+        const kick=Math.sin(ph+(fi?Math.PI:0))*S*.045;
+        ctx.save();ctx.translate(fx,-kick*.2);
+        const fg=ctx.createLinearGradient(0,-S*.09,0,S*.05);fg.addColorStop(0,'#ffd700');fg.addColorStop(.32,'#ff9900');fg.addColorStop(.72,'#e06000');fg.addColorStop(1,'#a03500');
+        ctx.fillStyle=fg;ctx.beginPath();ctx.ellipse(0,0,S*.23,S*.09,(fi?.22:-.22),0,Math.PI*2);ctx.fill();
+        ctx.strokeStyle='rgba(140,55,0,.5)';ctx.lineWidth=S*.018;
+        [-S*.085,0,S*.085].forEach(tx=>{ctx.beginPath();ctx.moveTo(tx,0);ctx.lineTo(tx+(fi?S*.03:-S*.03),-S*.12);ctx.stroke();});
+        ctx.restore();
+      });
+    } else {
+      [[-S*.28,0],[S*.28,0]].forEach(([fx],fi)=>{ctx.save();ctx.translate(fx,S*.06);ctx.rotate(fi?.38:-.38);const fg=ctx.createLinearGradient(0,-S*.08,0,S*.06);fg.addColorStop(0,'#ffd700');fg.addColorStop(.4,'#ff9900');fg.addColorStop(1,'#a03500');ctx.fillStyle=fg;ctx.beginPath();ctx.ellipse(0,0,S*.25,S*.1,0,0,Math.PI*2);ctx.fill();ctx.restore();});
+    }
+    ctx.save();ctx.translate(0,bob);
+    const BC=-S*.58;
+    const bg=ctx.createRadialGradient(-S*.18,BC+S*.12,S*.04,S*.04,BC+S*.2,S*.72);
+    bg.addColorStop(0,'#3a4e62');bg.addColorStop(.18,'#1e2e3c');bg.addColorStop(.48,'#0e1824');bg.addColorStop(1,'#050e18');
+    ctx.fillStyle=bg;ctx.beginPath();ctx.ellipse(0,BC,S*.44,S*.58,0,0,Math.PI*2);ctx.fill();
+    ctx.save();ctx.beginPath();ctx.ellipse(0,BC,S*.44,S*.58,0,0,Math.PI*2);ctx.clip();
+    for(let r=0;r<10;r++){const fy=BC-S*.52+r*S*.12,fw=S*(.14+r*.034);for(let fx2=-fw;fx2<=fw;fx2+=S*.085){ctx.fillStyle=`rgba(255,255,255,${.028-r*.0022})`;ctx.beginPath();ctx.ellipse(fx2,fy,S*.03,S*.055,0,0,Math.PI*2);ctx.fill();}}
+    ctx.restore();
+    const rC=ctx.createLinearGradient(-S*.46,BC-S*.58,-S*.05,BC+S*.3);rC.addColorStop(0,'rgba(0,235,255,1)');rC.addColorStop(.25,'rgba(0,200,255,.78)');rC.addColorStop(.55,'rgba(0,150,230,.36)');rC.addColorStop(1,'rgba(0,80,180,0)');
+    ctx.strokeStyle=rC;ctx.lineWidth=S*.072;ctx.beginPath();ctx.ellipse(0,BC,S*.44,S*.58,0,Math.PI*.50,Math.PI*1.60);ctx.stroke();
+    const rA=ctx.createLinearGradient(S*.34,BC-S*.45,S*.5,BC+S*.2);rA.addColorStop(0,'rgba(255,195,72,.52)');rA.addColorStop(1,'rgba(255,100,0,0)');
+    ctx.strokeStyle=rA;ctx.lineWidth=S*.04;ctx.beginPath();ctx.ellipse(0,BC,S*.44,S*.58,0,-Math.PI*.32,Math.PI*.28);ctx.stroke();
+    [-1,1].forEach(side=>{
+      ctx.save();ctx.translate(side*S*.38,BC+S*.02);ctx.rotate(side*(sliding?Math.PI*.55:Math.sin(ph)*.42));
+      const wg=ctx.createLinearGradient(0,0,side*S*.12,S*.34);wg.addColorStop(0,'#1c2c3c');wg.addColorStop(.6,'#0c1820');wg.addColorStop(1,'#060e18');
+      ctx.fillStyle=wg;ctx.beginPath();ctx.ellipse(side*S*.08,S*.18,S*.13,S*.34,side*.25,0,Math.PI*2);ctx.fill();
+      const wr=ctx.createLinearGradient(-S*.13,0,S*.04,S*.36);wr.addColorStop(0,'rgba(0,228,255,.65)');wr.addColorStop(1,'rgba(0,100,200,0)');
+      ctx.strokeStyle=wr;ctx.lineWidth=S*.038;ctx.beginPath();ctx.ellipse(side*S*.08,S*.18,S*.13,S*.34,side*.25,Math.PI*.58,Math.PI*1.52);ctx.stroke();
+      ctx.restore();
+    });
+    const belG=ctx.createRadialGradient(S*.055,BC+S*.04,0,0,BC+S*.02,S*.32);belG.addColorStop(0,'#ffffff');belG.addColorStop(.32,'#edf6ff');belG.addColorStop(.65,'#cce6f8');belG.addColorStop(1,'rgba(180,220,245,0)');
+    ctx.fillStyle=belG;ctx.beginPath();ctx.ellipse(S*.03,BC+S*.04,S*.28,S*.42,.065,0,Math.PI*2);ctx.fill();
+    const HC=BC-S*.58;
+    const hdg=ctx.createRadialGradient(-S*.11,HC-S*.05,S*.02,0,HC,S*.28);hdg.addColorStop(0,'#2e3e52');hdg.addColorStop(.44,'#131d2c');hdg.addColorStop(1,'#07101a');
+    ctx.fillStyle=hdg;ctx.beginPath();ctx.ellipse(0,HC,S*.27,S*.295,0,0,Math.PI*2);ctx.fill();
+    const hrC=ctx.createLinearGradient(-S*.28,HC-S*.3,-S*.04,HC+S*.1);hrC.addColorStop(0,'rgba(0,240,255,1)');hrC.addColorStop(.42,'rgba(0,200,255,.6)');hrC.addColorStop(1,'rgba(0,100,200,0)');
+    ctx.strokeStyle=hrC;ctx.lineWidth=S*.062;ctx.beginPath();ctx.ellipse(0,HC,S*.27,S*.295,0,Math.PI*.47,Math.PI*1.62);ctx.stroke();
+    [-1,1].forEach(side=>{
+      const ex=side*S*.12,ey=HC-S*.04;
+      const eg=ctx.createRadialGradient(ex-S*.01,ey-S*.015,0,ex,ey,S*.094);eg.addColorStop(0,'#ffffff');eg.addColorStop(.6,'#ddeeff');eg.addColorStop(1,'rgba(200,230,255,0)');
+      ctx.fillStyle=eg;ctx.beginPath();ctx.ellipse(ex,ey,S*.092,S*.098,0,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle='rgba(25,10,2,.9)';ctx.beginPath();ctx.arc(ex,ey,S*.053,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle='rgba(255,255,255,.96)';ctx.beginPath();ctx.arc(ex+S*.023,ey-S*.025,S*.021,0,Math.PI*2);ctx.fill();
+    });
+    const bky=HC+S*.1;
+    const bkG=ctx.createLinearGradient(0,bky-S*.038,0,bky+S*.18);bkG.addColorStop(0,'#ffdd00');bkG.addColorStop(.25,'#ff9900');bkG.addColorStop(.65,'#e06000');bkG.addColorStop(1,'#a03500');
+    ctx.fillStyle=bkG;ctx.beginPath();ctx.moveTo(-S*.12,bky-S*.018);ctx.quadraticCurveTo(0,bky-S*.088,S*.12,bky-S*.018);ctx.quadraticCurveTo(S*.036,bky+S*.19,-S*.036,bky+S*.19);ctx.quadraticCurveTo(-S*.12,bky+S*.088,-S*.12,bky-S*.018);ctx.closePath();ctx.fill();
+    ctx.restore();ctx.restore();
+  }
+
+  // Ground ice
+  (function(){
+    const iceCanv=document.createElement('canvas');iceCanv.width=W;iceCanv.height=H;
+    iceCanv.style.cssText='position:absolute;top:0;left:0;width:100%;height:100%;z-index:4;pointer-events:none;';
+    document.getElementById('app').appendChild(iceCanv);
+    const ix=iceCanv.getContext('2d');
+    const sg=ix.createLinearGradient(0,GROUND_Y-24,0,H);sg.addColorStop(0,'#7ecee8');sg.addColorStop(.2,'#aae2f6');sg.addColorStop(.55,'#d4f2fd');sg.addColorStop(1,'#eef9ff');
+    ix.fillStyle=sg;ix.beginPath();ix.moveTo(0,GROUND_Y);
+    for(let px=0;px<=W;px+=10)ix.lineTo(px,GROUND_Y+Math.sin(px*.018)*6+Math.cos(px*.007)*4);
+    ix.lineTo(W,H);ix.lineTo(0,H);ix.closePath();ix.fill();
+    for(let s=0;s<100;s++){const sx=Math.random()*W,sy=GROUND_Y+4+Math.random()*46,sa=Math.random()*.7+.22,sr=Math.random()*2.2+.4;ix.fillStyle=`rgba(255,255,255,${sa})`;ix.beginPath();ix.arc(sx,sy,sr,0,Math.PI*2);ix.fill();}
+  })();
+
+  const pSt=[];
+  const hitDivs=[];
+  for(let i=0;i<3;i++){
+    pSt.push({x:W*(.15+i*.30),vx:(Math.random()-.5)*1.0,tx:Math.random()*W*.75+W*.08,spd:.68+Math.random()*.5,dir:1,state:'WALK',stimer:0,slideVx:0,phase:i*2.1,wobT:0,wobAng:0});
+    const d=document.createElement('div');
+    d.style.cssText='position:absolute;width:80px;height:100px;cursor:pointer;z-index:21;';
+    document.getElementById('app').appendChild(d);
+    hitDivs.push(d);
+    d.addEventListener('mouseenter',()=>trigSlide(i));
+    d.addEventListener('click',()=>trigSlide(i));
+  }
+
+  function trigSlide(i){const s=pSt[i];if(s.state==='SLIDE')return;s.state='SLIDE';s.stimer=100;s.slideVx=s.dir*9;}
+  function spray(x,y,dir){for(let n=0;n<6;n++)particles.push({x,y,vx:-dir*(Math.random()*2.8+.4)+Math.random()*1.1,vy:-Math.random()*2.4-.5,life:1,r:Math.random()*3+.8});}
+
+  const t0=Date.now();
+  function frame(){
+    trX.clearRect(0,0,W,H);const now=Date.now();
+    for(let t=trails.length-1;t>=0;t--){const tr=trails[t],age=(now-tr.time)/2900;if(age>=1){trails.splice(t,1);continue;}const a=.42*(1-age)*(1-age);trX.strokeStyle=`rgba(100,215,255,${a})`;trX.lineWidth=(5.5-age*4.5)+.7;trX.lineCap='round';trX.beginPath();trX.moveTo(tr.x1,tr.y1);trX.lineTo(tr.x2,tr.y2);trX.stroke();trX.strokeStyle=`rgba(0,180,255,${a*.3})`;trX.lineWidth=(10-age*8)+1;trX.beginPath();trX.moveTo(tr.x1,tr.y1);trX.lineTo(tr.x2,tr.y2);trX.stroke();}
+    for(let p=particles.length-1;p>=0;p--){const pt=particles[p];pt.life-=.04;if(pt.life<=0){particles.splice(p,1);continue;}pt.x+=pt.vx;pt.y+=pt.vy;pt.vy+=.13;const a=pt.life*.9;trX.fillStyle=`rgba(215,248,255,${a})`;trX.beginPath();trX.arc(pt.x,pt.y,pt.r*pt.life,0,Math.PI*2);trX.fill();}
+    pSt.forEach((s,i)=>{
+      if(s.state==='SLIDE'){
+        s.stimer--;if(s.stimer<=0){s.state='WOBBLE';s.wobT=50;s.wobAng=0;}
+        const px=s.x;s.slideVx*=.983;s.x+=s.slideVx;s.x=Math.max(44,Math.min(W-44,s.x));
+        if(Math.abs(s.slideVx)>.35){trails.push({x1:px,y1:GROUND_Y,x2:s.x,y2:GROUND_Y,time:now});if(Math.random()>.52)spray(s.x+(s.dir>0?-34:34),GROUND_Y-2,s.dir);}
+        trX.save();if(s.dir<0){trX.scale(-1,1);trX.translate(-W,0);}
+        drawPeng(trX,s.dir>0?s.x:W-s.x,GROUND_Y,s.phase,true,0);trX.restore();
+      } else if(s.state==='WOBBLE'){
+        s.wobT--;if(s.wobT<=0)s.state='WALK';s.wobAng=Math.sin(s.wobT*.44)*14*(s.wobT/50);
+        drawPeng(trX,s.x,GROUND_Y,0,false,s.wobAng);
+      } else {
+        const dx=s.tx-s.x,dist=Math.abs(dx);if(dist<22){s.tx=Math.random()*W*.82+W*.05;}
+        s.vx+=(dx/(dist||1))*.13;s.vx*=.88;const vm=Math.abs(s.vx);if(vm>s.spd)s.vx=s.vx/vm*s.spd;
+        const px=s.x;s.x+=s.vx;s.x=Math.max(44,Math.min(W-44,s.x));
+        if(vm>.13)trails.push({x1:px,y1:GROUND_Y,x2:s.x,y2:GROUND_Y,time:now});
+        s.dir=s.vx>=0?1:-1;s.phase+=.072;
+        trX.save();if(s.dir<0){trX.scale(-1,1);trX.translate(-W,0);}
+        drawPeng(trX,s.dir>0?s.x:W-s.x,GROUND_Y,s.phase,false,0);trX.restore();
+      }
+      if(hitDivs[i]){hitDivs[i].style.left=(s.x-40)+'px';hitDivs[i].style.top=(GROUND_Y-95)+'px';}
+    });
+    requestAnimationFrame(frame);
+  }
+  frame();
+})();
+
+/* ═══════════════════════════════════════════════
+   ANIMATED DASHBOARD CHARACTERS (SVG-based)
+   Floating around the top-right corner
+═══════════════════════════════════════════════ */
+(function(){
+  const layer=document.getElementById('chars-layer');
+  layer.innerHTML='';
+
+  // Character 1: Mini robot / crystal sentinel
+  const c1=document.createElementNS('http://www.w3.org/2000/svg','svg');
+  c1.setAttribute('width','48');c1.setAttribute('height','58');c1.setAttribute('viewBox','0 0 48 58');
+  c1.style.cssText='filter:drop-shadow(0 0 10px rgba(0,200,255,.7));animation:charFloat 3.8s ease-in-out infinite;flex-shrink:0;';
+  c1.innerHTML=`
+    <ellipse cx="24" cy="56" rx="18" ry="3" fill="rgba(0,200,255,.2)"/>
+    <rect x="14" y="30" width="20" height="22" rx="5" fill="rgba(10,40,80,.9)" stroke="rgba(0,200,255,.8)" stroke-width="1.2"/>
+    <rect x="17" y="34" width="5" height="4" rx="1" fill="rgba(255,200,80,.85)"/>
+    <rect x="26" y="34" width="5" height="4" rx="1" fill="rgba(255,200,80,.85)"/>
+    <rect x="20" y="42" width="8" height="2" rx="1" fill="rgba(0,200,255,.6)"/>
+    <rect x="8" y="34" width="6" height="12" rx="3" fill="rgba(10,40,80,.85)" stroke="rgba(0,200,255,.6)" stroke-width="1"/>
+    <rect x="34" y="34" width="6" height="12" rx="3" fill="rgba(10,40,80,.85)" stroke="rgba(0,200,255,.6)" stroke-width="1"/>
+    <rect x="17" y="52" width="5" height="6" rx="2" fill="rgba(0,180,255,.6)"/>
+    <rect x="26" y="52" width="5" height="6" rx="2" fill="rgba(0,180,255,.6)"/>
+    <ellipse cx="24" cy="22" rx="12" ry="12" fill="rgba(10,40,80,.92)" stroke="rgba(0,200,255,.8)" stroke-width="1.2"/>
+    <circle cx="20" cy="20" r="3.5" fill="white"/><circle cx="21" cy="20" r="1.5" fill="#020c1a"/>
+    <circle cx="28" cy="20" r="3.5" fill="white"/><circle cx="29" cy="20" r="1.5" fill="#020c1a"/>
+    <circle cx="21.5" cy="19" r=".7" fill="white"/>
+    <circle cx="29.5" cy="19" r=".7" fill="white"/>
+    <ellipse cx="24" cy="26" rx="3" ry="1.5" fill="rgba(0,200,255,.5)"/>
+    <circle cx="24" cy="10" r="5" fill="none" stroke="rgba(0,200,255,.5)" stroke-width="1.5" stroke-dasharray="4 3"/>
+    <circle cx="24" cy="10" r="2" fill="rgba(0,220,255,.8)"/>`;
+
+  // Character 2: Snowflake spirit
+  const c2=document.createElementNS('http://www.w3.org/2000/svg','svg');
+  c2.setAttribute('width','44');c2.setAttribute('height','44');c2.setAttribute('viewBox','0 0 44 44');
+  c2.style.cssText='filter:drop-shadow(0 0 12px rgba(100,200,255,.8));animation:charFloat 4.4s ease-in-out infinite .9s;flex-shrink:0;';
+  c2.innerHTML=`
+    <g transform="translate(22,22)">
+      ${[0,30,60,90,120,150].map(a=>`
+        <g transform="rotate(${a})">
+          <line x1="0" y1="-18" x2="0" y2="18" stroke="rgba(160,230,255,.9)" stroke-width="2" stroke-linecap="round"/>
+          <line x1="-5" y1="-12" x2="5" y2="-8" stroke="rgba(160,230,255,.7)" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="-5" y1="12" x2="5" y2="8" stroke="rgba(160,230,255,.7)" stroke-width="1.5" stroke-linecap="round"/>
+          <circle cx="0" cy="-18" r="2.5" fill="rgba(200,240,255,.9)"/>
+        </g>`).join('')}
+      <circle cx="0" cy="0" r="4" fill="rgba(200,240,255,.95)" stroke="rgba(0,200,255,.6)" stroke-width="1"/>
+    </g>`;
+
+  // Character 3: Star / comet
+  const c3=document.createElementNS('http://www.w3.org/2000/svg','svg');
+  c3.setAttribute('width','40');c3.setAttribute('height','40');c3.setAttribute('viewBox','0 0 40 40');
+  c3.style.cssText='filter:drop-shadow(0 0 10px rgba(255,220,80,.7));animation:charFloat 3.2s ease-in-out infinite 1.8s;flex-shrink:0;';
+  c3.innerHTML=`
+    <polygon points="20,4 23,15 35,15 25,22 29,34 20,27 11,34 15,22 5,15 17,15" fill="rgba(255,220,80,.9)" stroke="rgba(255,180,40,.6)" stroke-width="1"/>
+    <polygon points="20,9 22.5,16 30,16 24,20.5 26.5,28 20,23.5 13.5,28 16,20.5 10,16 17.5,16" fill="rgba(255,240,140,.6)"/>`;
+
+  layer.style.cssText='position:absolute;top:16px;right:16px;z-index:9;pointer-events:none;display:flex;align-items:center;gap:16px;';
+  layer.appendChild(c1);layer.appendChild(c2);layer.appendChild(c3);
+})();
+
 </script>
-
 </body>
 </html>
