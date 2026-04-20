@@ -1,713 +1,206 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Dashboard — Snow Quest Grade 7 | OMNI-GRID</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com"/>
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&family=Rajdhani:wght@300;400;600;700&display=swap" rel="stylesheet"/>
-  <style>
-    /* ═══════════════════════════════════════════════════
-       BASE
-    ═══════════════════════════════════════════════════ */
-    *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
-    html, body { width:100%; height:100%; overflow:hidden; background:#010915; }
-    #app { width:100vw; height:100vh; position:relative; overflow:hidden; font-family:'Rajdhani',sans-serif; }
+    <meta charset="UTF-8">
+    <title>OMNI-GRID: Class 7 Next Gen Index</title>
+    <style>
+        :root {
+            --bg-deep: #050a14;
+            --sidebar-glass: rgba(255, 255, 255, 0.03);
+            --neon-yellow: #f4ff00;
+            --text-blue: #0a1931; /* Bold Dark Blue for Tabs */
+        }
 
-    /* ═══════════════════════════════════════════════════
-       SCENE CANVASES
-    ═══════════════════════════════════════════════════ */
-    canvas { position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; }
-    #cBg      { z-index:0; }
-    #cAurora  { z-index:1; }
-    #cGlacier { z-index:2; }
-    #cVillage { z-index:3; }
-    #cIce     { z-index:4; }
-    #cSnow    { z-index:5; }
-    #cHud     { z-index:6; }
-    #cTrail   { z-index:20; pointer-events:all; }
+        body {
+            margin: 0;
+            background-color: var(--bg-deep);
+            background-image: radial-gradient(circle at 50% 50%, #101a2d 0%, #050a14 100%);
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            display: flex;
+            height: 100vh;
+            color: #e0e6ed;
+            overflow: hidden;
+        }
 
-    /* ═══════════════════════════════════════════════════
-       DASHBOARD — stops 112px from bottom for penguins
-    ═══════════════════════════════════════════════════ */
-    #dashboard {
-      position:absolute; top:0; left:0;
-      width:100%; height:calc(100% - 112px);
-      z-index:8; display:flex; flex-direction:column;
-      pointer-events:all; overflow:hidden;
-    }
+        /* SIDEBAR */
+        #sidebar {
+            width: 300px;
+            background: var(--sidebar-glass);
+            backdrop-filter: blur(20px);
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            flex-direction: column;
+            padding: 40px 20px;
+            gap: 20px;
+            z-index: 10;
+        }
 
-    /* ── TOP BAR ── */
-    .top-bar {
-      display:flex; align-items:center; justify-content:space-between;
-      padding:12px 22px 10px; flex-shrink:0;
-      background:rgba(1,9,22,.55);
-      backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px);
-      border-bottom:1px solid rgba(0,180,255,.1);
-    }
-    .back-btn {
-      text-decoration:none; color:rgba(0,200,255,.82);
-      font-family:'Share Tech Mono',monospace; font-size:10px; letter-spacing:2px;
-      border:1px solid rgba(0,200,255,.28); padding:7px 16px; border-radius:4px;
-      background:rgba(0,20,50,.5); backdrop-filter:blur(10px);
-      transition:all .25s; display:flex; align-items:center; gap:7px;
-    }
-    .back-btn:hover { background:rgba(0,40,80,.7); border-color:rgba(0,220,255,.55); color:#00e5ff; }
-    .top-center { display:flex; flex-direction:column; align-items:center; gap:3px; }
-    .dash-title {
-      font-family:'Orbitron',monospace; font-size:clamp(13px,2vw,22px); font-weight:900;
-      background:linear-gradient(135deg,#c0e8ff,#00e5ff,#b0f0ff);
-      -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
-      letter-spacing:5px; filter:drop-shadow(0 0 14px rgba(0,200,255,.5));
-    }
-    .dash-sub { font-family:'Share Tech Mono',monospace; font-size:8px; letter-spacing:3px; color:rgba(0,180,255,.45); }
-    .dash-badges { display:flex; gap:6px; }
-    .top-badge {
-      background:rgba(0,220,255,.08); border:1px solid rgba(0,220,255,.28);
-      color:rgba(0,220,255,.82); font-family:'Share Tech Mono',monospace;
-      font-size:7px; letter-spacing:2px; padding:4px 10px; border-radius:2px;
-    }
+        /* SUBJECT TABS */
+        .subject-tab {
+            position: relative;
+            background: #ffffff;
+            color: var(--text-blue);
+            padding: 18px 25px;
+            border-radius: 12px;
+            font-weight: 800;
+            font-size: 15px;
+            cursor: pointer;
+            text-align: left;
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border: 2px solid transparent;
+            overflow: hidden;
+        }
 
-    /* ═══════════════════════════════════════════════════
-       MAIN BODY = SIDEBAR + CONTENT
-    ═══════════════════════════════════════════════════ */
-    .main-body {
-      flex:1; display:flex; overflow:hidden; min-height:0;
-    }
+        /* YELLOW STREAK ILLUMINATION EFFECT */
+        .subject-tab::before {
+            content: "";
+            position: absolute;
+            top: 0; left: -100%;
+            width: 100%; height: 100%;
+            background: linear-gradient(90deg, transparent, var(--neon-yellow), transparent);
+            transition: 0.5s;
+        }
 
-    /* ═══════════════════════════════════════════════════
-       LEFT SIDEBAR — VERTICAL NAV RAIL
-    ═══════════════════════════════════════════════════ */
-    .sidebar {
-      width:230px; flex-shrink:0;
-      display:flex; flex-direction:column;
-      padding:16px 14px; gap:8px;
-      background:rgba(0,10,28,.62);
-      backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px);
-      border-right:1px solid rgba(0,160,220,.12);
-      overflow-y:auto; overflow-x:hidden;
-    }
-    .sidebar::-webkit-scrollbar { width:3px; }
-    .sidebar::-webkit-scrollbar-thumb { background:rgba(0,160,255,.25); border-radius:2px; }
+        .subject-tab:hover {
+            transform: translateX(10px) scale(1.02);
+            box-shadow: 0 0 25px rgba(244, 255, 0, 0.4);
+            border-color: var(--neon-yellow);
+        }
 
-    .sidebar-label {
-      font-family:'Share Tech Mono',monospace; font-size:7.5px; letter-spacing:3px;
-      color:rgba(0,180,255,.38); padding:0 6px 4px; border-bottom:1px solid rgba(0,150,220,.1);
-      flex-shrink:0;
-    }
+        .subject-tab:hover::before {
+            left: 100%;
+        }
 
-    /* WHITE PILL TABS */
-    .nav-tab {
-      display:flex; align-items:center; gap:11px;
-      padding:13px 16px; border-radius:12px;
-      cursor:pointer; user-select:none; flex-shrink:0;
-      background:#ffffff;
-      box-shadow:0 4px 18px rgba(0,0,0,.45), 0 1px 4px rgba(0,0,0,.3);
-      transition:transform .22s cubic-bezier(.34,1.56,.64,1),
-                 box-shadow .22s ease,
-                 background .2s ease;
-      position:relative; overflow:hidden;
-    }
-    .nav-tab::before {
-      content:''; position:absolute; inset:0; border-radius:12px;
-      background:linear-gradient(135deg,rgba(255,255,255,0) 0%,rgba(255,255,255,.18) 100%);
-      pointer-events:none;
-    }
-    .nav-tab:hover {
-      transform:scale(1.045) translateX(4px);
-      box-shadow:0 8px 32px rgba(0,0,0,.55), 0 2px 8px rgba(0,0,0,.4);
-    }
-    .nav-tab.active {
-      transform:scale(1.05) translateX(6px);
-      box-shadow:0 10px 36px rgba(0,0,0,.6), 0 0 0 2px var(--tab-color);
-    }
+        /* MAIN STAGE */
+        #main-stage {
+            flex-grow: 1;
+            padding: 60px;
+            overflow-y: auto;
+        }
 
-    .tab-icon {
-      width:36px; height:36px; border-radius:9px; flex-shrink:0;
-      display:flex; align-items:center; justify-content:center;
-      font-size:18px;
-      box-shadow:0 2px 8px rgba(0,0,0,.25);
-    }
-    .tab-text { display:flex; flex-direction:column; gap:1px; min-width:0; }
-    .tab-name {
-      font-family:'Rajdhani',sans-serif; font-weight:700;
-      font-size:14px; color:#1a237e; letter-spacing:.5px; line-height:1;
-      white-space:nowrap;
-    }
-    .tab-hint {
-      font-family:'Share Tech Mono',monospace; font-size:8px;
-      color:rgba(26,35,126,.5); letter-spacing:1px; white-space:nowrap;
-    }
-    .tab-count {
-      margin-left:auto; flex-shrink:0;
-      font-family:'Share Tech Mono',monospace; font-size:9px; font-weight:700;
-      width:24px; height:24px; border-radius:6px;
-      display:flex; align-items:center; justify-content:center;
-      color:#fff;
-    }
-    /* Active dot indicator */
-    .nav-tab.active .tab-name { color:#0d1b8c; }
-    .nav-tab .active-bar {
-      position:absolute; left:0; top:50%; transform:translateY(-50%) scaleY(0);
-      width:3px; height:60%; border-radius:0 3px 3px 0;
-      background:var(--tab-color); transition:transform .3s cubic-bezier(.34,1.56,.64,1);
-    }
-    .nav-tab.active .active-bar { transform:translateY(-50%) scaleY(1); }
+        #subject-header {
+            font-size: 3rem;
+            font-weight: 900;
+            margin-bottom: 40px;
+            background: linear-gradient(to right, #fff, #5a78af);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-transform: uppercase;
+        }
 
-    /* Progress micro-bar under tab */
-    .tab-prog {
-      position:absolute; bottom:0; left:14px; right:14px; height:2px;
-      background:rgba(26,35,126,.1); border-radius:1px; overflow:hidden;
-    }
-    .tab-prog-fill {
-      height:100%; border-radius:1px;
-      background:var(--tab-color); opacity:.6;
-      transition:width .6s ease;
-    }
+        /* CHAPTER GRID */
+        #index-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 25px;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.5s ease-out;
+        }
 
-    /* ═══════════════════════════════════════════════════
-       RIGHT CONTENT AREA
-    ═══════════════════════════════════════════════════ */
-    .content-area {
-      flex:1; display:flex; flex-direction:column; overflow:hidden; min-height:0;
-      background:rgba(0,10,32,.72);
-      backdrop-filter:blur(18px); -webkit-backdrop-filter:blur(18px);
-    }
+        .chapter-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 25px;
+            border-radius: 16px;
+            position: relative;
+            transition: 0.3s;
+        }
 
-    /* ── CONTENT HEADER ── */
-    .content-header {
-      display:flex; align-items:center; gap:14px;
-      padding:14px 22px 12px;
-      border-bottom:1px solid rgba(0,150,200,.15); flex-shrink:0;
-      background:rgba(0,8,28,.4);
-    }
-    .content-icon {
-      width:46px; height:46px; border-radius:12px; flex-shrink:0;
-      display:flex; align-items:center; justify-content:center; font-size:22px;
-      border:1px solid rgba(0,200,255,.2);
-      box-shadow:0 0 20px rgba(0,0,0,.4);
-    }
-    .content-meta { flex:1; min-width:0; }
-    .content-name {
-      font-family:'Orbitron',monospace; font-size:clamp(11px,1.6vw,16px);
-      font-weight:700; letter-spacing:3px; line-height:1;
-    }
-    .content-desc { font-size:11px; letter-spacing:1px; color:rgba(120,185,215,.58); margin-top:4px; }
-    .content-progress { text-align:right; flex-shrink:0; }
-    .progress-label { font-family:'Share Tech Mono',monospace; font-size:9px; color:rgba(0,190,255,.6); letter-spacing:1px; }
-    .progress-bar-wrap { width:120px; height:4px; background:rgba(0,80,130,.3); border-radius:2px; overflow:hidden; margin-top:5px; }
-    .progress-bar { height:100%; border-radius:2px; transition:width .5s ease; }
+        .chapter-card:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: var(--neon-yellow);
+        }
 
-    /* ── CHAPTER GRID SCROLL ── */
-    .chapter-scroll { flex:1; overflow-y:auto; padding:16px 20px 12px; min-height:0; }
-    .chapter-scroll::-webkit-scrollbar { width:4px; }
-    .chapter-scroll::-webkit-scrollbar-track { background:rgba(0,12,36,.4); }
-    .chapter-scroll::-webkit-scrollbar-thumb { background:rgba(0,160,255,.3); border-radius:2px; }
+        .chapter-no {
+            font-size: 0.8rem;
+            color: var(--neon-yellow);
+            font-weight: bold;
+            display: block;
+            margin-bottom: 8px;
+        }
 
-    /* PANE TRANSITIONS */
-    .subject-pane {
-      display:none; flex-direction:column; width:100%; height:100%;
-      opacity:0; transform:translateY(10px);
-      transition:opacity .3s ease, transform .3s ease;
-      overflow:hidden;
-    }
-    .subject-pane.entering {
-      display:flex;
-      animation:paneIn .32s cubic-bezier(.25,.46,.45,.94) forwards;
-    }
-    @keyframes paneIn {
-      from { opacity:0; transform:translateX(18px); }
-      to   { opacity:1; transform:translateX(0); }
-    }
-    .subject-pane.active { display:flex; opacity:1; transform:none; }
+        .chapter-name {
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
 
-    /* CHAPTER CARDS GRID */
-    .chapter-grid {
-      display:grid;
-      grid-template-columns:repeat(auto-fill, minmax(200px,1fr));
-      gap:10px;
-    }
-    .chapter-card {
-      background:rgba(0,20,55,.68); border:1px solid rgba(0,140,190,.18);
-      border-radius:8px; padding:13px 14px;
-      cursor:pointer; transition:all .22s ease;
-      position:relative; overflow:hidden;
-    }
-    .chapter-card::before {
-      content:''; position:absolute; top:0; left:0;
-      width:3px; height:100%; border-radius:2px 0 0 2px;
-      background:var(--accent); opacity:.9;
-    }
-    .chapter-card:hover {
-      border-color:rgba(0,190,255,.4);
-      background:rgba(0,30,75,.78);
-      transform:translateY(-3px);
-      box-shadow:0 8px 28px rgba(0,0,0,.4), 0 0 0 1px rgba(0,190,255,.12);
-    }
-    .chapter-card:hover .ch-glow { opacity:1; }
-    .ch-glow {
-      position:absolute; top:-20px; right:-20px;
-      width:80px; height:80px; border-radius:50%;
-      background:radial-gradient(circle, var(--accent) 0%, transparent 70%);
-      opacity:0; pointer-events:none; transition:opacity .3s;
-    }
-    .ch-number { font-family:'Share Tech Mono',monospace; font-size:8px; letter-spacing:2px; margin-bottom:5px; color:var(--accent); opacity:.72; }
-    .ch-title { font-family:'Rajdhani',sans-serif; font-weight:600; font-size:13px; color:rgba(195,232,255,.92); margin-bottom:8px; line-height:1.35; }
-    .ch-footer { display:flex; align-items:center; justify-content:space-between; }
-    .ch-topics { font-size:9px; color:rgba(100,160,200,.55); }
-    .test-badge {
-      font-family:'Share Tech Mono',monospace; font-size:7px; letter-spacing:1px;
-      padding:3px 7px; border-radius:3px;
-      background:rgba(0,200,120,.12); border:1px solid rgba(0,200,120,.35); color:#00e87a;
-    }
-    .test-badge.locked {
-      background:rgba(60,70,110,.15); border-color:rgba(60,70,110,.3); color:rgba(120,145,190,.4);
-    }
-
-    /* ── BOTTOM STRIP LABEL ── */
-    .strip-label {
-      position:absolute; bottom:5px; right:22px; z-index:7;
-      font-family:'Share Tech Mono',monospace; font-size:7px;
-      letter-spacing:2px; color:rgba(0,180,255,.2); pointer-events:none;
-    }
-  </style>
+        .tag-status {
+            position: absolute;
+            top: 15px; right: 15px;
+            font-size: 10px;
+            padding: 4px 8px;
+            background: rgba(0, 212, 255, 0.2);
+            color: #00d4ff;
+            border-radius: 4px;
+            border: 1px solid #00d4ff;
+        }
+    </style>
 </head>
 <body>
-<div id="app">
 
-  <!-- Scene background layers -->
-  <canvas id="cBg"></canvas>
-  <canvas id="cAurora"></canvas>
-  <canvas id="cGlacier"></canvas>
-  <canvas id="cVillage"></canvas>
-  <canvas id="cIce"></canvas>
-  <canvas id="cSnow"></canvas>
-  <canvas id="cHud"></canvas>
+<nav id="sidebar">
+    <div class="subject-tab" onmouseover="loadChapters('SCIENCE')">Science (Curiosity)</div>
+    <div class="subject-tab" onmouseover="loadChapters('MATHS')">Mathematics</div>
+    <div class="subject-tab" onmouseover="loadChapters('SST')">Exploring Society</div>
+    <div class="subject-tab" onmouseover="loadChapters('ENGLISH')">English (Poorvi)</div>
+</nav>
 
-  <!-- Dashboard panel (stops 112px from bottom — penguin zone below) -->
-  <div id="dashboard">
+<main id="main-stage">
+    <h1 id="subject-header">Intelligence Hub</h1>
+    <div id="index-grid"></div>
+</main>
 
-    <!-- TOP BAR -->
-    <div class="top-bar">
-      <a class="back-btn" href="index.html">&#8592; EXPEDITION HQ</a>
-      <div class="top-center">
-        <div class="dash-title">SUBJECT INDEX</div>
-        <div class="dash-sub">OMNI-GRID UNIVERSE · CRYO-STATION ALPHA</div>
-      </div>
-      <div class="dash-badges">
-        <div class="top-badge">CLASS 7</div>
-        <div class="top-badge">NCERT 2024</div>
-      </div>
-    </div>
-
-    <!-- MAIN BODY: sidebar + content -->
-    <div class="main-body">
-
-      <!-- ══ LEFT SIDEBAR ══ -->
-      <nav class="sidebar" id="sidebar">
-        <div class="sidebar-label">SUBJECTS</div>
-
-        <div class="nav-tab active" data-subject="science"
-             style="--tab-color:#00c8ff;">
-          <div class="active-bar"></div>
-          <div class="tab-icon" style="background:linear-gradient(135deg,rgba(0,150,220,.25),rgba(0,80,150,.4));">&#9883;</div>
-          <div class="tab-text">
-            <div class="tab-name">Science</div>
-            <div class="tab-hint">18 chapters</div>
-          </div>
-          <div class="tab-count" style="background:rgba(0,200,255,.22);color:#00c8ff;">18</div>
-          <div class="tab-prog"><div class="tab-prog-fill" style="width:33%;"></div></div>
-        </div>
-
-        <div class="nav-tab" data-subject="maths"
-             style="--tab-color:#ff9900;">
-          <div class="active-bar"></div>
-          <div class="tab-icon" style="background:linear-gradient(135deg,rgba(200,120,0,.25),rgba(120,60,0,.4));">&#8730;</div>
-          <div class="tab-text">
-            <div class="tab-name">Mathematics</div>
-            <div class="tab-hint">15 chapters</div>
-          </div>
-          <div class="tab-count" style="background:rgba(255,153,0,.22);color:#ff9900;">15</div>
-          <div class="tab-prog"><div class="tab-prog-fill" style="width:40%;"></div></div>
-        </div>
-
-        <div class="nav-tab" data-subject="english"
-             style="--tab-color:#ff4f8b;">
-          <div class="active-bar"></div>
-          <div class="tab-icon" style="background:linear-gradient(135deg,rgba(200,50,100,.25),rgba(120,20,60,.4));">&#9997;</div>
-          <div class="tab-text">
-            <div class="tab-name">English</div>
-            <div class="tab-hint">20 chapters</div>
-          </div>
-          <div class="tab-count" style="background:rgba(255,79,139,.22);color:#ff4f8b;">20</div>
-          <div class="tab-prog"><div class="tab-prog-fill" style="width:55%;"></div></div>
-        </div>
-
-        <div class="nav-tab" data-subject="hindi"
-             style="--tab-color:#ffdd00;">
-          <div class="active-bar"></div>
-          <div class="tab-icon" style="background:linear-gradient(135deg,rgba(200,170,0,.25),rgba(120,100,0,.4));">&#128217;</div>
-          <div class="tab-text">
-            <div class="tab-name">Hindi</div>
-            <div class="tab-hint">20 chapters</div>
-          </div>
-          <div class="tab-count" style="background:rgba(255,221,0,.22);color:#cc9900;">20</div>
-          <div class="tab-prog"><div class="tab-prog-fill" style="width:25%;"></div></div>
-        </div>
-
-        <div class="nav-tab" data-subject="social"
-             style="--tab-color:#00e5cc;">
-          <div class="active-bar"></div>
-          <div class="tab-icon" style="background:linear-gradient(135deg,rgba(0,170,140,.25),rgba(0,90,80,.4));">&#127758;</div>
-          <div class="tab-text">
-            <div class="tab-name">Social Science</div>
-            <div class="tab-hint">28 chapters</div>
-          </div>
-          <div class="tab-count" style="background:rgba(0,229,204,.22);color:#00b8a0;">28</div>
-          <div class="tab-prog"><div class="tab-prog-fill" style="width:20%;"></div></div>
-        </div>
-
-        <div class="nav-tab" data-subject="sanskrit"
-             style="--tab-color:#b44fff;">
-          <div class="active-bar"></div>
-          <div class="tab-icon" style="background:linear-gradient(135deg,rgba(140,50,220,.25),rgba(80,20,140,.4));">&#9700;</div>
-          <div class="tab-text">
-            <div class="tab-name">Sanskrit</div>
-            <div class="tab-hint">15 chapters</div>
-          </div>
-          <div class="tab-count" style="background:rgba(180,79,255,.22);color:#b44fff;">15</div>
-          <div class="tab-prog"><div class="tab-prog-fill" style="width:15%;"></div></div>
-        </div>
-
-      </nav>
-
-      <!-- ══ RIGHT CONTENT AREA ══ -->
-      <div class="content-area" id="contentArea">
-
-        <!-- Dynamic header injected by JS -->
-        <div class="content-header" id="contentHeader"></div>
-
-        <!-- Scrollable grid -->
-        <div class="chapter-scroll" id="chapterScroll">
-          <!-- Subject panes injected by JS -->
-        </div>
-
-      </div>
-    </div>
-  </div><!-- /dashboard -->
-
-  <!-- Penguin canvas — ABOVE everything -->
-  <canvas id="cTrail" style="z-index:20;pointer-events:all;"></canvas>
-
-  <div class="strip-label">CRYO-STATION ALPHA // OMNI-GRID SYS-7</div>
-</div>
-
-<script src="penguin-engine.js"></script>
-<script src="scene.js"></script>
 <script>
-/* ══════════════════════════════════════════════════════
-   NCERT CLASS 7 CHAPTER DATA
-══════════════════════════════════════════════════════ */
-const SUBJECTS = {
-  science: {
-    name:'Science',
-    fullName:'SCIENCE — NCERT CLASS 7',
-    desc:'Biology · Physics · Chemistry · Environment',
-    icon:'&#9883;',
-    color:'#00c8ff',
-    iconBg:'rgba(0,150,220,.18)',
-    progress:33,
-    chapters:[
-      { title:'Nutrition in Plants',                    topics:'Photosynthesis, Modes of Nutrition',           done:true  },
-      { title:'Nutrition in Animals',                   topics:'Human Digestive System, Ruminants',            done:true  },
-      { title:'Fibre to Fabric',                        topics:'Wool, Silk, Synthetic Fibres',                 done:true  },
-      { title:'Heat',                                   topics:'Temperature, Conductors, Insulators',          done:true  },
-      { title:'Acids, Bases & Salts',                   topics:'Indicators, pH, Neutralisation',               done:true  },
-      { title:'Physical & Chemical Changes',            topics:'Reversible, Irreversible, Rusting',            done:true  },
-      { title:'Weather, Climate & Adaptations',         topics:'Climate Zones, Polar & Tropical Life',         done:false },
-      { title:'Winds, Storms & Cyclones',               topics:'Air Pressure, Cyclone Formation',              done:false },
-      { title:'Soil',                                   topics:'Soil Profile, Percolation, Absorption',        done:false },
-      { title:'Respiration in Organisms',               topics:'Aerobic & Anaerobic, Breathing',               done:false },
-      { title:'Transportation in Animals & Plants',     topics:'Blood, Heart, Xylem, Phloem',                  done:false },
-      { title:'Reproduction in Plants',                 topics:'Sexual, Asexual, Pollination',                 done:false },
-      { title:'Motion & Time',                          topics:'Speed, Distance-Time Graph, Units',            done:false },
-      { title:'Electric Current & Its Effects',         topics:'Circuits, Heating Effect, Magnetic Effect',    done:false },
-      { title:'Light',                                  topics:'Reflection, Plane Mirror, Image Formation',    done:false },
-      { title:'Water — A Precious Resource',            topics:'Water Cycle, Groundwater, Scarcity',           done:false },
-      { title:'Forests — Our Lifeline',                 topics:'Canopy, Decomposers, Ecosystem',               done:false },
-      { title:'Wastewater Story',                       topics:'Sewage, Treatment Plant, Sanitation',          done:false },
-    ]
-  },
-  maths: {
-    name:'Mathematics',
-    fullName:'MATHEMATICS — NCERT CLASS 7',
-    desc:'Number Systems · Algebra · Geometry · Data Handling',
-    icon:'&#8730;',
-    color:'#ff9900',
-    iconBg:'rgba(200,120,0,.18)',
-    progress:40,
-    chapters:[
-      { title:'Integers',                               topics:'Properties, Multiplication & Division',        done:true  },
-      { title:'Fractions & Decimals',                   topics:'Operations on Fractions & Decimals',           done:true  },
-      { title:'Data Handling',                          topics:'Mean, Median, Mode, Bar Graph, Probability',   done:true  },
-      { title:'Simple Equations',                       topics:'Forming & Solving Equations, Applications',    done:true  },
-      { title:'Lines & Angles',                         topics:'Complementary, Supplementary, Transversals',   done:true  },
-      { title:'The Triangle & Its Properties',          topics:'Angle Sum, Pythagoras, Median, Altitude',      done:true  },
-      { title:'Congruence of Triangles',                topics:'SSS, SAS, ASA, AAS, RHS Criteria',             done:false },
-      { title:'Comparing Quantities',                   topics:'Ratios, Percentages, Profit & Loss, SI',       done:false },
-      { title:'Rational Numbers',                       topics:'Number Line, Operations, Properties',          done:false },
-      { title:'Practical Geometry',                     topics:'Constructing Triangles with Given Conditions', done:false },
-      { title:'Perimeter & Area',                       topics:'Square, Rectangle, Triangle, Circle',          done:false },
-      { title:'Algebraic Expressions',                  topics:'Terms, Factors, Like & Unlike Terms',          done:false },
-      { title:'Exponents & Powers',                     topics:'Laws of Exponents, Standard Form',             done:false },
-      { title:'Symmetry',                               topics:'Lines of Symmetry, Rotational Symmetry',       done:false },
-      { title:'Visualising Solid Shapes',               topics:'Nets, Isometric Sketches, Euler\'s Formula',   done:false },
-    ]
-  },
-  english: {
-    name:'English',
-    fullName:'ENGLISH — HONEYCOMB & ALIEN HAND',
-    desc:'Prose · Poetry · Supplementary Reader',
-    icon:'&#9997;',
-    color:'#ff4f8b',
-    iconBg:'rgba(200,50,100,.18)',
-    progress:55,
-    chapters:[
-      { title:'Three Questions',                        topics:'Honeycomb Ch 1 — Prose, Values & Wisdom',     done:true  },
-      { title:'A Gift of Chappals',                     topics:'Honeycomb Ch 2 — Prose, Compassion',          done:true  },
-      { title:'Gopal & the Hilsa Fish',                 topics:'Honeycomb Ch 3 — Prose, Humour & Wit',        done:true  },
-      { title:'The Ashes That Made Trees Bloom',        topics:'Honeycomb Ch 4 — Prose, Karma & Values',      done:true  },
-      { title:'Quality',                                topics:'Honeycomb Ch 5 — Prose, Honesty & Craft',     done:true  },
-      { title:'Expert Detectives',                      topics:'Honeycomb Ch 6 — Prose, Observation',         done:true  },
-      { title:'The Invention of Vita-Wonk',             topics:'Honeycomb Ch 7 — Prose, Imagination',         done:true  },
-      { title:'Fire: Friend and Foe',                   topics:'Honeycomb Ch 8 — Prose, Science & Safety',    done:true  },
-      { title:'A Bicycle in Good Repair',               topics:'Honeycomb Ch 9 — Prose, Humour',              done:true  },
-      { title:'The Story of Cricket',                   topics:'Honeycomb Ch 10 — Prose, Sport & History',    done:true  },
-      { title:'The Tiny Teacher',                       topics:'Alien Hand Ch 1 — Ants, Nature',              done:true  },
-      { title:'Bringing Up Kari',                       topics:'Alien Hand Ch 2 — Elephants, Bond',           done:false },
-      { title:'The Desert',                             topics:'Alien Hand Ch 3 — Ecosystems, Adaptation',    done:false },
-      { title:'The Cop and the Anthem',                 topics:'Alien Hand Ch 4 — O. Henry, Irony',           done:false },
-      { title:'Golu Grows a Nose',                      topics:'Alien Hand Ch 5 — Just So Stories',           done:false },
-      { title:'I Want Something in a Cage',             topics:'Alien Hand Ch 6 — Freedom, Values',           done:false },
-      { title:'Chandni',                                topics:'Alien Hand Ch 7 — A Goat\'s Story, Values',   done:false },
-      { title:'The Bear Story',                         topics:'Alien Hand Ch 8 — Animal Bond',               done:false },
-      { title:'A Tiger in the House',                   topics:'Alien Hand Ch 9 — Wildlife, Ruskin Bond',     done:false },
-      { title:'An Alien Hand',                          topics:'Alien Hand Ch 10 — Science Fiction',          done:false },
-    ]
-  },
-  hindi: {
-    name:'Hindi',
-    fullName:'HINDI — वसंत भाग 2',
-    desc:'गद्य · पद्य · व्याकरण · रचना',
-    icon:'&#128217;',
-    color:'#ffdd00',
-    iconBg:'rgba(200,170,0,.18)',
-    progress:25,
-    chapters:[
-      { title:'हम पंछी उन्मुक्त गगन के',               topics:'वसंत पाठ 1 — कविता, स्वतंत्रता',              done:true  },
-      { title:'दादी माँ',                               topics:'वसंत पाठ 2 — संस्मरण, पारिवारिक रिश्ते',      done:true  },
-      { title:'हिमालय की बेटियाँ',                      topics:'वसंत पाठ 3 — निबंध, नदियाँ और प्रकृति',       done:true  },
-      { title:'कठपुतली',                                topics:'वसंत पाठ 4 — कविता, स्वतंत्रता की चाह',       done:true  },
-      { title:'मिठाईवाला',                              topics:'वसंत पाठ 5 — कहानी, करुणा और व्यापार',        done:true  },
-      { title:'रक्त और हमारा शरीर',                     topics:'वसंत पाठ 6 — विज्ञान लेख, स्वास्थ्य',         done:false },
-      { title:'पापा खो गए',                             topics:'वसंत पाठ 7 — नाटक, बाल सुरक्षा',             done:false },
-      { title:'शाम — एक किसान',                         topics:'वसंत पाठ 8 — कविता, प्रकृति चित्रण',          done:false },
-      { title:'चिड़िया की बच्ची',                       topics:'वसंत पाठ 9 — कहानी, साहस और स्वतंत्रता',      done:false },
-      { title:'अपूर्व अनुभव',                           topics:'वसंत पाठ 10 — संस्मरण, जापान यात्रा',         done:false },
-      { title:'रहीम के दोहे',                           topics:'वसंत पाठ 11 — दोहे, नीति और जीवन दर्शन',      done:false },
-      { title:'कंचा',                                   topics:'वसंत पाठ 12 — कहानी, बचपन की यादें',          done:false },
-      { title:'एक तिनका',                               topics:'वसंत पाठ 13 — कविता, विनम्रता',               done:false },
-      { title:'खानपान की बदलती तस्वीर',                 topics:'वसंत पाठ 14 — निबंध, सांस्कृतिक बदलाव',       done:false },
-      { title:'नीलकंठ',                                 topics:'वसंत पाठ 15 — रेखाचित्र, मोर पालन',           done:false },
-      { title:'भोर और बरखा',                            topics:'वसंत पाठ 16 — कविता, भोर और वर्षा',           done:false },
-      { title:'वीर कुँवर सिंह',                         topics:'वसंत पाठ 17 — जीवनी, 1857 का संग्राम',        done:false },
-      { title:'संघर्ष के कारण मैं तुनकमिज़ाज हो गया',   topics:'वसंत पाठ 18 — साक्षात्कार, व्यक्तित्व',        done:false },
-      { title:'आश्रम का अनुमानित व्यय',                 topics:'वसंत पाठ 19 — लेखाजोखा, गाँधी जी',            done:false },
-      { title:'विप्लव-गायन',                            topics:'वसंत पाठ 20 — कविता, क्रांतिकारी भावना',       done:false },
-    ]
-  },
-  social: {
-    name:'Social Science',
-    fullName:'SOCIAL SCIENCE — NCERT CLASS 7',
-    desc:'History · Geography · Civics (Political Science)',
-    icon:'&#127758;',
-    color:'#00e5cc',
-    iconBg:'rgba(0,170,140,.18)',
-    progress:20,
-    chapters:[
-      { title:'Tracing Changes Through a Thousand Years', topics:'History Ch 1 — Sources, Maps, Perceptions',   done:true  },
-      { title:'New Kings and Kingdoms',                 topics:'History Ch 2 — Rashtrakutas, Pratiharas',      done:true  },
-      { title:'The Delhi Sultans',                      topics:'History Ch 3 — Raziya, Khaljis, Tughlaqs',     done:true  },
-      { title:'The Mughal Empire',                      topics:'History Ch 4 — Akbar, Administration',         done:true  },
-      { title:'Rulers and Buildings',                   topics:'History Ch 5 — Architecture, Temples',         done:false },
-      { title:'Towns, Traders and Craftspersons',       topics:'History Ch 6 — Trade Routes, Urban Life',      done:false },
-      { title:'Tribes, Nomads and Settled Communities', topics:'History Ch 7 — Bhils, Gonds, Ahoms',           done:false },
-      { title:'Devotional Paths to the Divine',         topics:'History Ch 8 — Bhakti, Sufi Movements',        done:false },
-      { title:'The Making of Regional Cultures',        topics:'History Ch 9 — Kathak, Kerala, Rajputs',       done:false },
-      { title:'Eighteenth-Century Political Formations',topics:'History Ch 10 — Mughals, Marathas, Sikhs',     done:false },
-      { title:'Environment',                            topics:'Geography Ch 1 — Natural & Human Environment', done:true  },
-      { title:'Inside Our Earth',                       topics:'Geography Ch 2 — Layers, Rocks & Minerals',    done:false },
-      { title:'Our Changing Earth',                     topics:'Geography Ch 3 — Earthquakes, Volcanoes',      done:false },
-      { title:'Air',                                    topics:'Geography Ch 4 — Atmosphere, Winds, Weather',  done:false },
-      { title:'Water',                                  topics:'Geography Ch 5 — Ocean Circulation, Tides',    done:false },
-      { title:'Natural Vegetation and Wildlife',        topics:'Geography Ch 6 — Biomes, Forests',             done:false },
-      { title:'Human Environment — Settlement & Transport', topics:'Geography Ch 7 — Roads, Railways',         done:false },
-      { title:'Human Environment Interactions',         topics:'Geography Ch 8 — Amazon & Ganga Plain',        done:false },
-      { title:'Life in the Deserts',                    topics:'Geography Ch 9 — Sahara, Ladakh',              done:false },
-      { title:'On Equality',                            topics:'Civics Ch 1 — Constitutional Equality, Rights',done:true  },
-      { title:'Role of the Government in Health',       topics:'Civics Ch 2 — Public Health, Cuba Model',     done:false },
-      { title:'How the State Government Works',         topics:'Civics Ch 3 — MLA, CM, Legislature',          done:false },
-      { title:'Growing Up as Boys and Girls',           topics:'Civics Ch 4 — Gender, Stereotypes, Equality', done:false },
-      { title:'Women Change the World',                 topics:'Civics Ch 5 — Literacy, Women\'s Movements',  done:false },
-      { title:'Understanding Media',                    topics:'Civics Ch 6 — TV, Newspapers, Censorship',    done:false },
-      { title:'Markets Around Us',                      topics:'Civics Ch 7 — Weekly Market, Mall, Chain',    done:false },
-      { title:'A Shirt in the Market',                  topics:'Civics Ch 8 — Cotton to Shirt, Exploitation', done:false },
-      { title:'Struggles for Equality',                 topics:'Civics Ch 9 — Movements, Constitution',       done:false },
-    ]
-  },
-  sanskrit: {
-    name:'Sanskrit',
-    fullName:'SANSKRIT — रुचिरा भाग 2',
-    desc:'सुभाषितानि · व्याकरण · अनुवाद · कथाएँ',
-    icon:'&#9700;',
-    color:'#b44fff',
-    iconBg:'rgba(140,50,220,.18)',
-    progress:15,
-    chapters:[
-      { title:'सुभाषितानि',                             topics:'पाठ 1 — नीतिपरक श्लोक, जीवन दर्शन',           done:true  },
-      { title:'दुर्बुद्धिः विनश्यति',                    topics:'पाठ 2 — कथा, मित्रभेद से शिक्षा',             done:true  },
-      { title:'स्वावलम्बनम्',                            topics:'पाठ 3 — निबन्ध, स्वावलंबन का महत्व',           done:false },
-      { title:'हास्यबालकविसम्मेलनम्',                    topics:'पाठ 4 — नाटिका, हास्य कविता',                done:false },
-      { title:'पण्डिता रमाबाई',                         topics:'पाठ 5 — जीवनी, महिला शिक्षा आंदोलन',          done:false },
-      { title:'सदाचारः',                                topics:'पाठ 6 — नैतिक आचरण और संस्कार',               done:false },
-      { title:'संकल्पः सिद्धिदायकः',                     topics:'पाठ 7 — प्रेरक कथा, दृढ़ निश्चय',             done:false },
-      { title:'त्रिवर्णः ध्वजः',                         topics:'पाठ 8 — राष्ट्रीय ध्वज, देशभक्ति',            done:false },
-      { title:'अहमपि विद्यालयं गमिष्यामि',               topics:'पाठ 9 — शिक्षा और समानता',                   done:false },
-      { title:'विश्वबन्धुत्वम्',                          topics:'पाठ 10 — वसुधैव कुटुम्बकम् की भावना',         done:false },
-      { title:'समवायो हि दुर्जयः',                        topics:'पाठ 11 — एकता और सहयोग की शक्ति',            done:false },
-      { title:'विद्याधनम्',                              topics:'पाठ 12 — ज्ञान सर्वश्रेष्ठ धन है',            done:false },
-      { title:'अमृतं संस्कृतम्',                         topics:'पाठ 13 — संस्कृत भाषा की श्रेष्ठता',          done:false },
-      { title:'अनारिकायाः जिज्ञासा',                     topics:'पाठ 14 — बाल कथा, जिज्ञासु स्वभाव',           done:false },
-      { title:'लालनगीतम्',                               topics:'पाठ 15 — गीत, मातृभाषा प्रेम',                done:false },
-    ]
-  }
-};
+    const ncertData = {
+        "SCIENCE": [
+            { id: "01", name: "The Ever-Evolving World of Science", tag: "OPEN" },
+            { id: "02", name: "Exploring Substances: Acid/Base", tag: "OPEN" },
+            { id: "03", name: "Electricity and Circuits", tag: "LOCKED" },
+            { id: "04", name: "Metals & Non-metals", tag: "LOCKED" }
+        ],
+        "MATHS": [
+            { id: "01", name: "Integers", tag: "COMPLETED" },
+            { id: "02", name: "Fractions and Decimals", tag: "OPEN" },
+            { id: "03", name: "Data Handling", tag: "LOCKED" }
+        ],
+        "SST": [
+            { id: "01", name: "Geographical Diversity", tag: "OPEN" },
+            { id: "02", name: "The Constitution: Introduction", tag: "OPEN" },
+            { id: "03", name: "Climate of India", tag: "LOCKED" }
+        ],
+        "ENGLISH": [
+            { id: "01", name: "Learning Together", tag: "OPEN" },
+            { id: "02", name: "Wit and Humour", tag: "OPEN" }
+        ]
+    };
 
-/* ══════════════════════════════════════════════════════
-   RENDER ENGINE
-══════════════════════════════════════════════════════ */
-let currentSubject = 'science';
-let switchTimer = null;
+    function loadChapters(subjectKey) {
+        const grid = document.getElementById('index-grid');
+        const header = document.getElementById('subject-header');
+        
+        // Reset state
+        grid.style.opacity = "0";
+        grid.style.transform = "translateY(20px)";
+        header.innerText = subjectKey;
 
-const header = document.getElementById('contentHeader');
-const scroll  = document.getElementById('chapterScroll');
-
-function renderHeader(key) {
-  const s = SUBJECTS[key];
-  const done = s.chapters.filter(c => c.done).length;
-  header.innerHTML = `
-    <div class="content-icon" style="background:${s.iconBg}; border-color:${s.color}33;">${s.icon}</div>
-    <div class="content-meta">
-      <div class="content-name" style="color:${s.color};">${s.fullName}</div>
-      <div class="content-desc">${s.desc}</div>
-    </div>
-    <div class="content-progress">
-      <div class="progress-label">${done}/${s.chapters.length} DONE · ${s.progress}%</div>
-      <div class="progress-bar-wrap">
-        <div class="progress-bar" style="width:${s.progress}%;background:linear-gradient(90deg,${s.color}88,${s.color});"></div>
-      </div>
-    </div>`;
-}
-
-function renderGrid(key) {
-  const s = SUBJECTS[key];
-
-  // Fade out current
-  const old = scroll.querySelector('.chapter-grid');
-  if (old) {
-    old.style.transition = 'opacity .18s ease, transform .18s ease';
-    old.style.opacity = '0';
-    old.style.transform = 'translateX(-10px)';
-  }
-
-  setTimeout(() => {
-    scroll.innerHTML = '';
-    const grid = document.createElement('div');
-    grid.className = 'chapter-grid';
-    grid.style.cssText = 'opacity:0;transform:translateX(14px);transition:opacity .28s ease,transform .28s ease;';
-
-    s.chapters.forEach((ch, idx) => {
-      const card = document.createElement('div');
-      card.className = 'chapter-card';
-      card.style.setProperty('--accent', s.color);
-      card.innerHTML = `
-        <div class="ch-glow" style="background:radial-gradient(circle,${s.color}55 0%,transparent 70%);"></div>
-        <div class="ch-number" style="color:${s.color};">CH ${String(idx+1).padStart(2,'0')}</div>
-        <div class="ch-title">${ch.title}</div>
-        <div class="ch-footer">
-          <div class="ch-topics">${ch.topics}</div>
-          <div class="test-badge ${ch.done?'':'locked'}">${ch.done?'&#10003; TEST ZONE':'LOCKED'}</div>
-        </div>`;
-      card.addEventListener('click', () => {
-        card.style.boxShadow = `0 0 26px ${s.color}66`;
-        setTimeout(() => card.style.boxShadow = '', 700);
-      });
-      grid.appendChild(card);
-    });
-
-    scroll.appendChild(grid);
-    scroll.scrollTop = 0;
-
-    // Trigger entrance animation
-    requestAnimationFrame(() => {
-      grid.style.opacity = '1';
-      grid.style.transform = 'translateX(0)';
-    });
-  }, old ? 160 : 0);
-}
-
-function switchSubject(key, immediate) {
-  if (key === currentSubject && !immediate) return;
-  currentSubject = key;
-
-  // Update header instantly
-  renderHeader(key);
-
-  // Update sidebar tabs
-  document.querySelectorAll('.nav-tab').forEach(t => {
-    t.classList.toggle('active', t.dataset.subject === key);
-  });
-
-  // Render grid with transition
-  renderGrid(key);
-}
-
-/* ══════════════════════════════════════════════════════
-   SIDEBAR HOVER + CLICK LOGIC
-══════════════════════════════════════════════════════ */
-document.querySelectorAll('.nav-tab').forEach(tab => {
-  // Hover — switch with tiny debounce so fast mouse-overs don't flash
-  tab.addEventListener('mouseenter', () => {
-    clearTimeout(switchTimer);
-    switchTimer = setTimeout(() => switchSubject(tab.dataset.subject), 80);
-  });
-  tab.addEventListener('mouseleave', () => clearTimeout(switchTimer));
-
-  // Click also switches (and locks selection on mobile)
-  tab.addEventListener('click', () => switchSubject(tab.dataset.subject));
-});
-
-/* ══════════════════════════════════════════════════════
-   BOOT
-══════════════════════════════════════════════════════ */
-switchSubject('science', true);
-SnowQuestScene.init('app');
-PenguinEngine.init('cTrail', 'app', SnowQuestScene.GROUND_Y);
-
-// Lift penguin hit divs above everything
-setTimeout(() => {
-  document.querySelectorAll('#app > div[style*="cursor:pointer"]').forEach(d => d.style.zIndex = '21');
-}, 200);
+        setTimeout(() => {
+            grid.innerHTML = "";
+            ncertData[subjectKey].forEach(ch => {
+                const card = document.createElement('div');
+                card.className = 'chapter-card';
+                card.innerHTML = `
+                    <span class="tag-status">${ch.tag}</span>
+                    <span class="chapter-no">CHAPTER ${ch.id}</span>
+                    <div class="chapter-name">${ch.name}</div>
+                `;
+                grid.appendChild(card);
+            });
+            grid.style.opacity = "1";
+            grid.style.transform = "translateY(0)";
+        }, 200);
+    }
 </script>
+
 </body>
 </html>
