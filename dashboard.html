@@ -104,8 +104,9 @@ canvas{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none
 
 /* ═══════════════════ RIGHT CONTENT ═══════════════════ */
 .content {
-  flex:1;display:flex;flex-direction:column;overflow:hidden;
+  flex:1;display:flex;flex-direction:column;overflow:hidden;min-height:0;
   background:rgba(2,10,28,.6);backdrop-filter:blur(6px);
+  position:relative;
 }
 
 /* Mission header */
@@ -194,28 +195,18 @@ canvas{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none
 .sc-badge.lock{background:rgba(60,80,120,.18);border:1px solid rgba(60,80,120,.3);color:rgba(120,150,200,.45);}
 
 /* Content pane transitions */
-.cpane{display:none;flex-direction:column;height:100%;opacity:0;transform:translateX(20px);}
+.cpane{
+  display:none;flex-direction:column;
+  width:100%;height:100%;
+  min-height:0;overflow:hidden;
+}
 .cpane.active{
   display:flex;
-  animation:paneIn .28s cubic-bezier(.25,.46,.45,.94) forwards;
+  animation:paneIn .28s cubic-bezier(.25,.46,.45,.94) both;
 }
 @keyframes paneIn{
-  from{opacity:0;transform:translateX(20px);}
+  from{opacity:0;transform:translateX(16px);}
   to{opacity:1;transform:translateX(0);}
-}
-
-/* ═══════════════════ ANIMATED CHARACTERS ═══════════════════ */
-#chars-layer{
-  position:absolute;bottom:115px;right:20px;
-  z-index:9;pointer-events:none;
-  display:flex;align-items:flex-end;gap:18px;
-}
-.char{animation:charFloat 4s ease-in-out infinite;}
-.char:nth-child(2){animation-delay:.8s;}
-.char:nth-child(3){animation-delay:1.6s;}
-@keyframes charFloat{
-  0%,100%{transform:translateY(0);}
-  50%{transform:translateY(-8px);}
 }
 
 /* ═══════════════════ BOTTOM STRIP ═══════════════════ */
@@ -234,13 +225,6 @@ canvas{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none
 <canvas id="cAurora"></canvas>
 <canvas id="cStars"></canvas>
 <canvas id="cSnow"></canvas>
-
-<!-- ANIMATED FLOAT CHARACTERS -->
-<div id="chars-layer">
-  <div class="char" style="animation-delay:0s;font-size:36px;filter:drop-shadow(0 0 10px rgba(0,200,255,.6));">&#10052;</div>
-  <div class="char" style="animation-delay:1.2s;font-size:28px;filter:drop-shadow(0 0 8px rgba(100,220,255,.5));">&#10053;</div>
-  <div class="char" style="animation-delay:2.2s;font-size:32px;filter:drop-shadow(0 0 12px rgba(0,180,255,.5));">&#10054;</div>
-</div>
 
 <!-- MAIN SHELL: sidebar + content (stops 115px from bottom for penguins) -->
 <div id="shell">
@@ -541,7 +525,7 @@ function buildPane(key){
    RENDER + SWITCH LOGIC
 ═══════════════════════════════════════════════ */
 const contentArea=document.getElementById('contentArea');
-let current='science', switchT=null;
+let current=null, switchT=null;
 
 // Build all panes up front
 Object.keys(SUBS).forEach(k=>{
@@ -552,27 +536,36 @@ Object.keys(SUBS).forEach(k=>{
 function activate(key){
   if(key===current) return;
   current=key;
-  // Tabs
+  // Update tabs
   document.querySelectorAll('.nav-tab').forEach(t=>{
     t.classList.toggle('active',t.dataset.s===key);
   });
-  // Panes
-  document.querySelectorAll('.cpane').forEach(p=>p.classList.remove('active'));
+  // Update panes — remove active from all, add to target
+  document.querySelectorAll('.cpane').forEach(p=>{
+    p.classList.remove('active');
+  });
   const pane=document.getElementById('pane-'+key);
-  if(pane) pane.classList.add('active');
+  if(pane){
+    // Force reflow so animation re-triggers on each switch
+    void pane.offsetWidth;
+    pane.classList.add('active');
+  }
 }
 
-// Activate first
-document.getElementById('pane-science').classList.add('active');
+// Activate Science on load
+activate('science');
 
-// Hover + click
+// Hover (with debounce) + click
 document.querySelectorAll('.nav-tab').forEach(tab=>{
   tab.addEventListener('mouseenter',()=>{
     clearTimeout(switchT);
-    switchT=setTimeout(()=>activate(tab.dataset.s),70);
+    switchT=setTimeout(()=>activate(tab.dataset.s),60);
   });
   tab.addEventListener('mouseleave',()=>clearTimeout(switchT));
-  tab.addEventListener('click',()=>activate(tab.dataset.s));
+  tab.addEventListener('click',()=>{
+    clearTimeout(switchT);
+    activate(tab.dataset.s);
+  });
 });
 
 /* ═══════════════════════════════════════════════
@@ -820,63 +813,63 @@ animSnow();
 })();
 
 /* ═══════════════════════════════════════════════
-   ANIMATED DASHBOARD CHARACTERS (SVG-based)
-   Floating around the top-right corner
+   FLOATING AMBIENT DECORATIONS
+   Snowflakes + stars only — no robot character
 ═══════════════════════════════════════════════ */
 (function(){
-  const layer=document.getElementById('chars-layer');
-  layer.innerHTML='';
+  // Create a container for floating accent decorations
+  const wrap = document.createElement('div');
+  wrap.style.cssText = 'position:absolute;top:14px;right:18px;z-index:9;pointer-events:none;display:flex;align-items:center;gap:18px;';
+  document.getElementById('app').appendChild(wrap);
 
-  // Character 1: Mini robot / crystal sentinel
-  const c1=document.createElementNS('http://www.w3.org/2000/svg','svg');
-  c1.setAttribute('width','48');c1.setAttribute('height','58');c1.setAttribute('viewBox','0 0 48 58');
-  c1.style.cssText='filter:drop-shadow(0 0 10px rgba(0,200,255,.7));animation:charFloat 3.8s ease-in-out infinite;flex-shrink:0;';
-  c1.innerHTML=`
-    <ellipse cx="24" cy="56" rx="18" ry="3" fill="rgba(0,200,255,.2)"/>
-    <rect x="14" y="30" width="20" height="22" rx="5" fill="rgba(10,40,80,.9)" stroke="rgba(0,200,255,.8)" stroke-width="1.2"/>
-    <rect x="17" y="34" width="5" height="4" rx="1" fill="rgba(255,200,80,.85)"/>
-    <rect x="26" y="34" width="5" height="4" rx="1" fill="rgba(255,200,80,.85)"/>
-    <rect x="20" y="42" width="8" height="2" rx="1" fill="rgba(0,200,255,.6)"/>
-    <rect x="8" y="34" width="6" height="12" rx="3" fill="rgba(10,40,80,.85)" stroke="rgba(0,200,255,.6)" stroke-width="1"/>
-    <rect x="34" y="34" width="6" height="12" rx="3" fill="rgba(10,40,80,.85)" stroke="rgba(0,200,255,.6)" stroke-width="1"/>
-    <rect x="17" y="52" width="5" height="6" rx="2" fill="rgba(0,180,255,.6)"/>
-    <rect x="26" y="52" width="5" height="6" rx="2" fill="rgba(0,180,255,.6)"/>
-    <ellipse cx="24" cy="22" rx="12" ry="12" fill="rgba(10,40,80,.92)" stroke="rgba(0,200,255,.8)" stroke-width="1.2"/>
-    <circle cx="20" cy="20" r="3.5" fill="white"/><circle cx="21" cy="20" r="1.5" fill="#020c1a"/>
-    <circle cx="28" cy="20" r="3.5" fill="white"/><circle cx="29" cy="20" r="1.5" fill="#020c1a"/>
-    <circle cx="21.5" cy="19" r=".7" fill="white"/>
-    <circle cx="29.5" cy="19" r=".7" fill="white"/>
-    <ellipse cx="24" cy="26" rx="3" ry="1.5" fill="rgba(0,200,255,.5)"/>
-    <circle cx="24" cy="10" r="5" fill="none" stroke="rgba(0,200,255,.5)" stroke-width="1.5" stroke-dasharray="4 3"/>
-    <circle cx="24" cy="10" r="2" fill="rgba(0,220,255,.8)"/>`;
+  const NS = 'http://www.w3.org/2000/svg';
 
-  // Character 2: Snowflake spirit
-  const c2=document.createElementNS('http://www.w3.org/2000/svg','svg');
-  c2.setAttribute('width','44');c2.setAttribute('height','44');c2.setAttribute('viewBox','0 0 44 44');
-  c2.style.cssText='filter:drop-shadow(0 0 12px rgba(100,200,255,.8));animation:charFloat 4.4s ease-in-out infinite .9s;flex-shrink:0;';
-  c2.innerHTML=`
-    <g transform="translate(22,22)">
+  // Snowflake spirit
+  const sf = document.createElementNS(NS,'svg');
+  sf.setAttribute('width','46');sf.setAttribute('height','46');sf.setAttribute('viewBox','0 0 46 46');
+  sf.style.cssText = 'filter:drop-shadow(0 0 10px rgba(120,210,255,.85));animation:sfFloat 4.2s ease-in-out infinite;flex-shrink:0;';
+  sf.innerHTML = `
+    <style>@keyframes sfFloat{0%,100%{transform:translateY(0) rotate(0deg)}50%{transform:translateY(-8px) rotate(15deg)}}</style>
+    <g transform="translate(23,23)">
       ${[0,30,60,90,120,150].map(a=>`
         <g transform="rotate(${a})">
-          <line x1="0" y1="-18" x2="0" y2="18" stroke="rgba(160,230,255,.9)" stroke-width="2" stroke-linecap="round"/>
-          <line x1="-5" y1="-12" x2="5" y2="-8" stroke="rgba(160,230,255,.7)" stroke-width="1.5" stroke-linecap="round"/>
-          <line x1="-5" y1="12" x2="5" y2="8" stroke="rgba(160,230,255,.7)" stroke-width="1.5" stroke-linecap="round"/>
-          <circle cx="0" cy="-18" r="2.5" fill="rgba(200,240,255,.9)"/>
+          <line x1="0" y1="-19" x2="0" y2="19" stroke="rgba(160,230,255,.92)" stroke-width="2.2" stroke-linecap="round"/>
+          <line x1="-6" y1="-13" x2="6" y2="-9"  stroke="rgba(160,230,255,.75)" stroke-width="1.6" stroke-linecap="round"/>
+          <line x1="-6" y1="13"  x2="6" y2="9"   stroke="rgba(160,230,255,.75)" stroke-width="1.6" stroke-linecap="round"/>
+          <circle cx="0" cy="-19" r="2.8" fill="rgba(200,245,255,.92)"/>
+          <circle cx="0" cy="19"  r="2.8" fill="rgba(200,245,255,.92)"/>
         </g>`).join('')}
-      <circle cx="0" cy="0" r="4" fill="rgba(200,240,255,.95)" stroke="rgba(0,200,255,.6)" stroke-width="1"/>
+      <circle cx="0" cy="0" r="5" fill="rgba(200,242,255,.95)" stroke="rgba(0,200,255,.7)" stroke-width="1.2"/>
     </g>`;
 
-  // Character 3: Star / comet
-  const c3=document.createElementNS('http://www.w3.org/2000/svg','svg');
-  c3.setAttribute('width','40');c3.setAttribute('height','40');c3.setAttribute('viewBox','0 0 40 40');
-  c3.style.cssText='filter:drop-shadow(0 0 10px rgba(255,220,80,.7));animation:charFloat 3.2s ease-in-out infinite 1.8s;flex-shrink:0;';
-  c3.innerHTML=`
-    <polygon points="20,4 23,15 35,15 25,22 29,34 20,27 11,34 15,22 5,15 17,15" fill="rgba(255,220,80,.9)" stroke="rgba(255,180,40,.6)" stroke-width="1"/>
-    <polygon points="20,9 22.5,16 30,16 24,20.5 26.5,28 20,23.5 13.5,28 16,20.5 10,16 17.5,16" fill="rgba(255,240,140,.6)"/>`;
+  // Spinning star
+  const st = document.createElementNS(NS,'svg');
+  st.setAttribute('width','42');st.setAttribute('height','42');st.setAttribute('viewBox','0 0 42 42');
+  st.style.cssText = 'filter:drop-shadow(0 0 10px rgba(255,220,80,.7));animation:stFloat 3.4s ease-in-out infinite 1.1s;flex-shrink:0;';
+  st.innerHTML = `
+    <style>@keyframes stFloat{0%,100%{transform:translateY(0) rotate(0deg)}50%{transform:translateY(-10px) rotate(18deg)}}</style>
+    <polygon points="21,3 24.5,14 36,14 27,21.5 30.5,33 21,26 11.5,33 15,21.5 6,14 17.5,14"
+      fill="rgba(255,220,80,.9)" stroke="rgba(255,180,40,.55)" stroke-width="1"/>
+    <polygon points="21,8 23.5,15.5 31,15.5 25,20 27.5,28 21,23.5 14.5,28 17,20 11,15.5 18.5,15.5"
+      fill="rgba(255,242,140,.65)"/>
+    <circle cx="21" cy="21" r="3.5" fill="rgba(255,248,180,.9)"/>`;
 
-  layer.style.cssText='position:absolute;top:16px;right:16px;z-index:9;pointer-events:none;display:flex;align-items:center;gap:16px;';
-  layer.appendChild(c1);layer.appendChild(c2);layer.appendChild(c3);
+  // Ice crystal
+  const ic = document.createElementNS(NS,'svg');
+  ic.setAttribute('width','36');ic.setAttribute('height','36');ic.setAttribute('viewBox','0 0 36 36');
+  ic.style.cssText = 'filter:drop-shadow(0 0 8px rgba(80,200,255,.7));animation:icFloat 5s ease-in-out infinite 2.2s;flex-shrink:0;';
+  ic.innerHTML = `
+    <style>@keyframes icFloat{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-6px) scale(1.08)}}</style>
+    <polygon points="18,2 22,14 34,18 22,22 18,34 14,22 2,18 14,14"
+      fill="none" stroke="rgba(0,210,255,.8)" stroke-width="1.8"/>
+    <polygon points="18,8 21,15 28,18 21,21 18,28 15,21 8,18 15,15"
+      fill="rgba(0,200,255,.12)" stroke="rgba(0,220,255,.5)" stroke-width="1"/>
+    <circle cx="18" cy="18" r="4" fill="rgba(0,230,255,.9)"/>`;
+
+  wrap.appendChild(sf);wrap.appendChild(st);wrap.appendChild(ic);
 })();
+
+
 
 </script>
 </body>
