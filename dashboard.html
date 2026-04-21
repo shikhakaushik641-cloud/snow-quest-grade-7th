@@ -314,31 +314,56 @@
   }
   @keyframes pulse { 0%,100%{opacity:0.4} 50%{opacity:1} }
 
-  /* Snow particle animation */
+  /* Wind-swept snow animation */
   @keyframes snowfall {
-    0% { transform: translateY(-10px) translateX(0); opacity: 0; }
-    10% { opacity: 1; }
-    90% { opacity: 0.6; }
-    100% { transform: translateY(100vh) translateX(30px); opacity: 0; }
+    0%   { transform: translate(0, -10px) rotate(0deg);   opacity: 0; }
+    8%   { opacity: 1; }
+    85%  { opacity: 0.7; }
+    100% { transform: translate(120px, 100vh) rotate(360deg); opacity: 0; }
+  }
+  @keyframes snowfall-fast {
+    0%   { transform: translate(0, -10px);   opacity: 0; }
+    8%   { opacity: 0.9; }
+    100% { transform: translate(180px, 100vh); opacity: 0; }
   }
   .snowflake {
     position: absolute;
     top: -5px;
-    width: 3px; height: 3px;
     background: white;
     border-radius: 50%;
     animation: snowfall linear infinite;
+    pointer-events: none;
+  }
+  .snowflake.fast {
+    animation-name: snowfall-fast;
+    border-radius: 40%;
+  }
+
+  /* Wind streak lines */
+  @keyframes windstreak {
+    0%   { transform: translateX(-100%); opacity: 0; }
+    15%  { opacity: 0.18; }
+    85%  { opacity: 0.12; }
+    100% { transform: translateX(120vw);  opacity: 0; }
+  }
+  .wind-streak {
+    position: absolute;
+    left: -10%;
+    height: 1px;
+    border-radius: 1px;
+    background: linear-gradient(90deg, transparent, #a8d8f0, #c8ecff, transparent);
+    animation: windstreak linear infinite;
     pointer-events: none;
   }
 
   /* ── VILLAGE LAYER ── */
   .village-layer {
     position: absolute;
-    bottom: 38px;
+    bottom: 80px;
     left: 0; right: 0;
-    height: 180px;
+    height: 260px;
     pointer-events: none;
-    overflow: hidden;
+    overflow: visible;
   }
 
   /* Houses */
@@ -656,70 +681,258 @@ for (let i = 0; i < 120; i++) {
   starsEl.appendChild(star);
 }
 
-// Snowflakes
+// Wind-swept snowflakes
 const scene = document.getElementById('scene');
-for (let i = 0; i < 50; i++) {
+for (let i = 0; i < 80; i++) {
   const flake = document.createElement('div');
-  flake.className = 'snowflake';
-  const size = 1 + Math.random() * 3;
+  const isFast = Math.random() < 0.25;
+  flake.className = 'snowflake' + (isFast ? ' fast' : '');
+  const size = isFast ? (1 + Math.random() * 1.5) : (1.5 + Math.random() * 3.5);
   flake.style.cssText = `
     left:${Math.random()*100}%;
-    width:${size}px; height:${size}px;
-    opacity:${0.3 + Math.random()*0.6};
-    animation-duration:${5 + Math.random()*10}s;
-    animation-delay:${-Math.random()*15}s;
+    width:${size}px; height:${isFast ? size*0.5 : size}px;
+    opacity:${0.3 + Math.random()*0.65};
+    animation-duration:${isFast ? (2+Math.random()*3) : (6+Math.random()*9)}s;
+    animation-delay:${-Math.random()*18}s;
   `;
   scene.appendChild(flake);
 }
 
-// ── VILLAGE BUILDER ──
-function makePenguinSVG(size, hasHat, glowColor) {
-  const h = size, w = size * 0.7;
-  const hat = hasHat ? `
-    <ellipse cx="${w/2}" cy="${h*0.13}" rx="${w*0.28}" ry="${h*0.04}" fill="#1a2a1a"/>
-    <rect x="${w*0.3}" y="${h*0.04}" width="${w*0.4}" height="${h*0.1}" rx="2" fill="#1a3a1a"/>
-    <circle cx="${w*0.5}" cy="${h*0.04}" r="${h*0.035}" fill="${glowColor||'#f5c842'}" style="filter:drop-shadow(0 0 4px ${glowColor||'#f5c842'})"/>
-  ` : '';
-  return `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg">
-    ${hat}
-    <!-- body -->
-    <ellipse cx="${w*0.5}" cy="${h*0.55}" rx="${w*0.38}" ry="${h*0.38}" fill="#1a1a2e"/>
-    <!-- belly -->
-    <ellipse cx="${w*0.5}" cy="${h*0.6}" rx="${w*0.22}" ry="${h*0.26}" fill="#e8f0ff"/>
-    <!-- head -->
-    <circle cx="${w*0.5}" cy="${h*0.2}" r="${w*0.28}" fill="#1a1a2e"/>
-    <!-- face white -->
-    <ellipse cx="${w*0.5}" cy="${h*0.22}" rx="${w*0.18}" ry="${w*0.14}" fill="#e8f0ff"/>
-    <!-- eyes -->
-    <circle cx="${w*0.42}" cy="${h*0.18}" r="${w*0.05}" fill="white"/>
-    <circle cx="${w*0.58}" cy="${h*0.18}" r="${w*0.05}" fill="white"/>
-    <circle cx="${w*0.43}" cy="${h*0.18}" r="${w*0.028}" fill="#111"/>
-    <circle cx="${w*0.59}" cy="${h*0.18}" r="${w*0.028}" fill="#111"/>
-    <!-- beak -->
-    <ellipse cx="${w*0.5}" cy="${h*0.25}" rx="${w*0.07}" ry="${h*0.04}" fill="#f5a030"/>
-    <!-- wings -->
-    <ellipse cx="${w*0.18}" cy="${h*0.55}" rx="${w*0.13}" ry="${h*0.22}" fill="#111228" transform="rotate(-10,${w*0.18},${h*0.55})"/>
-    <ellipse cx="${w*0.82}" cy="${h*0.55}" rx="${w*0.13}" ry="${h*0.22}" fill="#111228" transform="rotate(10,${w*0.82},${h*0.55})"/>
-    <!-- feet -->
-    <ellipse cx="${w*0.38}" cy="${h*0.92}" rx="${w*0.14}" ry="${h*0.05}" fill="#f5a030"/>
-    <ellipse cx="${w*0.62}" cy="${h*0.92}" rx="${w*0.14}" ry="${h*0.05}" fill="#f5a030"/>
-    <!-- blue accent band -->
-    <path d="M${w*0.15},${h*0.38} Q${w*0.08},${h*0.3} ${w*0.2},${h*0.22}" stroke="#00aaee" stroke-width="1.5" fill="none" opacity="0.5"/>
-    <path d="M${w*0.85},${h*0.38} Q${w*0.92},${h*0.3} ${w*0.8},${h*0.22}" stroke="#00aaee" stroke-width="1.5" fill="none" opacity="0.5"/>
-  </svg>`;
+// Wind streak lines
+for (let i = 0; i < 18; i++) {
+  const streak = document.createElement('div');
+  streak.className = 'wind-streak';
+  const w = 60 + Math.random() * 180;
+  const top = 5 + Math.random() * 85;
+  const dur = 3 + Math.random() * 5;
+  streak.style.cssText = `
+    top:${top}%;
+    width:${w}px;
+    animation-duration:${dur}s;
+    animation-delay:${-Math.random()*dur}s;
+    opacity:0;
+  `;
+  scene.appendChild(streak);
 }
 
-function makeHouse(w, h, windowW, windowH, antennaH, snowCapW) {
+// ── VILLAGE BUILDER ──
+
+// Creates a fully-rigged penguin as an SVG with named animatable parts
+function makePenguinEl(size, hasHat, glowColor) {
+  const gc = glowColor || '#f5c842';
+  const W = size * 0.78, H = size;
+
+  // Key proportional anchors
+  const cx   = W * 0.5;
+  const bodyY = H * 0.58, bodyRX = W * 0.38, bodyRY = H * 0.32;
+  const headY = H * 0.26, headR  = W * 0.30;
+  const legTopY = H * 0.86;
+
+  const ns = 'http://www.w3.org/2000/svg';
+  const svg = document.createElementNS(ns,'svg');
+  svg.setAttribute('width', W);
+  svg.setAttribute('height', H);
+  svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+  svg.setAttribute('overflow','visible');
+  svg.style.overflow = 'visible';
+
+  function el(tag, attrs) {
+    const e = document.createElementNS(ns, tag);
+    for (const [k,v] of Object.entries(attrs)) e.setAttribute(k,v);
+    return e;
+  }
+  function g(attrs={}) { return el('g', attrs); }
+
+  // ── HAT ──
+  if (hasHat) {
+    const hatG = g();
+    // cone
+    hatG.appendChild(el('polygon',{
+      points:`${cx},${H*0.01} ${cx-W*0.22},${H*0.15} ${cx+W*0.22},${H*0.15}`,
+      fill:'#1a3a20'
+    }));
+    // brim
+    hatG.appendChild(el('rect',{
+      x:cx-W*0.25, y:H*0.14, width:W*0.5, height:H*0.03, rx:2, fill:gc, opacity:0.95
+    }));
+    // tip glow
+    const tipCirc = el('circle',{ cx, cy:H*0.01, r:H*0.032, fill:gc });
+    tipCirc.style.filter = `drop-shadow(0 0 6px ${gc})`;
+    hatG.appendChild(tipCirc);
+    // zigzag on hat
+    for(let i=0;i<3;i++){
+      hatG.appendChild(el('circle',{
+        cx: cx - W*0.06 + i*W*0.06,
+        cy: H*0.09 + (i%2)*H*0.02,
+        r: H*0.014,
+        fill: i===1 ? '#ff88aa' : '#ffffff',
+        opacity:0.7
+      }));
+    }
+    svg.appendChild(hatG);
+  }
+
+  // ── LEFT WING (behind body) ──
+  const lwPivotX = cx - bodyRX*0.72, lwPivotY = bodyY - bodyRY*0.1;
+  const lwG = g({ id:'lw' });
+  lwG.setAttribute('transform-origin', `${lwPivotX} ${lwPivotY}`);
+  lwG.appendChild(el('ellipse',{
+    cx: lwPivotX - W*0.08,
+    cy: lwPivotY + H*0.14,
+    rx: W*0.115, ry: H*0.22,
+    fill:'#0a0a1c',
+    transform:`rotate(-15,${lwPivotX},${lwPivotY})`
+  }));
+  svg.appendChild(lwG);
+
+  // ── BODY ──
+  const bodyG = g({ id:'body' });
+  // main body oval
+  bodyG.appendChild(el('ellipse',{
+    cx, cy:bodyY, rx:bodyRX, ry:bodyRY, fill:'#12122e'
+  }));
+  // belly white
+  bodyG.appendChild(el('ellipse',{
+    cx, cy:bodyY+H*0.03, rx:bodyRX*0.6, ry:bodyRY*0.72, fill:'#dce9ff'
+  }));
+  // belly shadow gradient simulation (darker at top of belly)
+  bodyG.appendChild(el('ellipse',{
+    cx, cy:bodyY-H*0.04, rx:bodyRX*0.55, ry:bodyRY*0.28,
+    fill:'#b8ccee', opacity:'0.45'
+  }));
+  svg.appendChild(bodyG);
+
+  // ── RIGHT WING (front) ──
+  const rwPivotX = cx + bodyRX*0.72, rwPivotY = bodyY - bodyRY*0.1;
+  const rwG = g({ id:'rw' });
+  rwG.setAttribute('transform-origin', `${rwPivotX} ${rwPivotY}`);
+  rwG.appendChild(el('ellipse',{
+    cx: rwPivotX + W*0.08,
+    cy: rwPivotY + H*0.14,
+    rx: W*0.115, ry: H*0.22,
+    fill:'#0f0f22',
+    transform:`rotate(15,${rwPivotX},${rwPivotY})`
+  }));
+  svg.appendChild(rwG);
+
+  // ── HEAD ──
+  const headG = g();
+  // head base
+  headG.appendChild(el('circle',{ cx, cy:headY, r:headR, fill:'#12122e' }));
+  // face white patch
+  headG.appendChild(el('ellipse',{
+    cx, cy:headY+H*0.02, rx:headR*0.68, ry:headR*0.56, fill:'#dce9ff'
+  }));
+  // cheek blush
+  headG.appendChild(el('ellipse',{
+    cx:cx-headR*0.42, cy:headY+H*0.04, rx:headR*0.22, ry:headR*0.14,
+    fill:'#ff9999', opacity:'0.28'
+  }));
+  headG.appendChild(el('ellipse',{
+    cx:cx+headR*0.42, cy:headY+H*0.04, rx:headR*0.22, ry:headR*0.14,
+    fill:'#ff9999', opacity:'0.28'
+  }));
+  // left eye
+  headG.appendChild(el('circle',{ cx:cx-headR*0.36, cy:headY-H*0.025, r:headR*0.18, fill:'white' }));
+  headG.appendChild(el('circle',{ cx:cx-headR*0.33, cy:headY-H*0.025, r:headR*0.11, fill:'#111' }));
+  headG.appendChild(el('circle',{ cx:cx-headR*0.37, cy:headY-H*0.042, r:headR*0.04, fill:'white' }));
+  // right eye
+  headG.appendChild(el('circle',{ cx:cx+headR*0.36, cy:headY-H*0.025, r:headR*0.18, fill:'white' }));
+  headG.appendChild(el('circle',{ cx:cx+headR*0.33, cy:headY-H*0.025, r:headR*0.11, fill:'#111' }));
+  headG.appendChild(el('circle',{ cx:cx+headR*0.37, cy:headY-H*0.042, r:headR*0.04, fill:'white' }));
+  // beak
+  const beakG = g();
+  beakG.appendChild(el('ellipse',{
+    cx, cy:headY+H*0.055, rx:headR*0.28, ry:headR*0.16, fill:'#f5a030'
+  }));
+  beakG.appendChild(el('line',{
+    x1:cx-headR*0.25, y1:headY+H*0.055,
+    x2:cx+headR*0.25, y2:headY+H*0.055,
+    stroke:'#c47010', 'stroke-width':'1.2', opacity:'0.6'
+  }));
+  headG.appendChild(beakG);
+  // cyan collar
+  headG.appendChild(el('path',{
+    d:`M${cx-bodyRX*0.5},${headY+headR*0.6} Q${cx-bodyRX*0.65},${headY+headR*0.85} ${cx-bodyRX*0.35},${headY+headR}`,
+    stroke:'#00ccee','stroke-width':'2.5',fill:'none',opacity:'0.6','stroke-linecap':'round'
+  }));
+  headG.appendChild(el('path',{
+    d:`M${cx+bodyRX*0.5},${headY+headR*0.6} Q${cx+bodyRX*0.65},${headY+headR*0.85} ${cx+bodyRX*0.35},${headY+headR}`,
+    stroke:'#00ccee','stroke-width':'2.5',fill:'none',opacity:'0.6','stroke-linecap':'round'
+  }));
+  svg.appendChild(headG);
+
+  // ── LEFT LEG+FOOT ──
+  const lLegG = g({ id:'ll' });
+  lLegG.setAttribute('transform-origin', `${cx - W*0.16} ${legTopY}`);
+  // upper leg
+  lLegG.appendChild(el('rect',{
+    x: cx-W*0.22, y: legTopY,
+    width: W*0.13, height: H*0.1,
+    rx:3, fill:'#e09020'
+  }));
+  // foot
+  lLegG.appendChild(el('ellipse',{
+    cx: cx-W*0.155, cy: legTopY+H*0.1,
+    rx: W*0.165, ry: H*0.04,
+    fill:'#f5a830'
+  }));
+  // toe lines
+  for(let t=-1;t<=1;t++){
+    lLegG.appendChild(el('line',{
+      x1:cx-W*0.155, y1:legTopY+H*0.1,
+      x2:cx-W*0.155+t*W*0.1, y2:legTopY+H*0.135,
+      stroke:'#c47010','stroke-width':'1.5','stroke-linecap':'round'
+    }));
+  }
+  svg.appendChild(lLegG);
+
+  // ── RIGHT LEG+FOOT ──
+  const rLegG = g({ id:'rl' });
+  rLegG.setAttribute('transform-origin', `${cx + W*0.16} ${legTopY}`);
+  rLegG.appendChild(el('rect',{
+    x: cx+W*0.09, y: legTopY,
+    width: W*0.13, height: H*0.1,
+    rx:3, fill:'#e09020'
+  }));
+  rLegG.appendChild(el('ellipse',{
+    cx: cx+W*0.155, cy: legTopY+H*0.1,
+    rx: W*0.165, ry: H*0.04,
+    fill:'#f5a830'
+  }));
+  for(let t=-1;t<=1;t++){
+    rLegG.appendChild(el('line',{
+      x1:cx+W*0.155, y1:legTopY+H*0.1,
+      x2:cx+W*0.155+t*W*0.1, y2:legTopY+H*0.135,
+      stroke:'#c47010','stroke-width':'1.5','stroke-linecap':'round'
+    }));
+  }
+  svg.appendChild(rLegG);
+
+  return { svg, lLeg: lLegG, rLeg: rLegG, lWing: lwG, rWing: rwG,
+           legTopY, cx, W, H };
+}
+
+function makePenguinSVG(size, hasHat, glowColor) {
+  return makePenguinEl(size, hasHat, glowColor).svg.outerHTML;
+}
+
+function makeHouse(w, h, windowW, windowH, antennaH) {
   const el = document.createElement('div');
   el.className = 'house';
-  el.style.cssText = `bottom:0;`;
+  const roofH = h * 0.44;
+  const bodyH = h * 0.62;
   el.innerHTML = `
-    <div class="house-roof" style="border-left-width:${w*0.55}px;border-right-width:${w*0.55}px;border-bottom-width:${h*0.45}px;width:0;">
-      <div style="position:absolute;top:0;left:${-w*0.55}px;width:${w*1.1}px;height:8px;background:#d8eef8;border-radius:2px 2px 0 0;margin-top:${h*0.45-6}px;"></div>
-    </div>
-    <div class="house-body" style="width:${w}px;height:${h*0.6}px;">
-      <div class="house-antenna" style="height:${antennaH}px;"></div>
-      <div class="house-window" style="width:${windowW}px;height:${windowH}px;"></div>
+    <div style="position:relative;width:${w}px;">
+      <div style="position:absolute;top:${-antennaH}px;left:50%;transform:translateX(-50%);width:3px;height:${antennaH}px;background:#1a3a5c;">
+        <div style="position:absolute;top:-5px;left:50%;transform:translateX(-50%);width:10px;height:10px;border-radius:50%;background:#00d4ff;box-shadow:0 0 8px #00d4ff,0 0 16px #00d4ff88;"></div>
+      </div>
+      <div style="width:${w}px;height:${roofH}px;background:#0d2140;clip-path:polygon(50% 0%,100% 100%,0% 100%);position:relative;">
+        <div style="position:absolute;bottom:0;left:0;right:0;height:10px;background:#d8eef8;border-radius:2px 2px 0 0;"></div>
+      </div>
+      <div style="width:${w}px;height:${bodyH}px;background:#0d2140;display:flex;align-items:center;justify-content:center;border-radius:0 0 4px 4px;">
+        <div style="width:${windowW}px;height:${windowH}px;background:#f5c842;border-radius:2px;box-shadow:0 0 12px #f5c84299;"></div>
+      </div>
     </div>
   `;
   return el;
@@ -730,10 +943,10 @@ function makeTree(size) {
   el.className = 'tree';
   const s = size;
   el.innerHTML = `
-    <div class="tree-tier" style="border-left-width:${s*0.7}px;border-right-width:${s*0.7}px;border-bottom-width:${s*0.8}px;"></div>
-    <div class="tree-tier" style="border-left-width:${s*0.9}px;border-right-width:${s*0.9}px;border-bottom-width:${s}px;margin-top:-${s*0.3}px;"></div>
-    <div class="tree-tier" style="border-left-width:${s*1.1}px;border-right-width:${s*1.1}px;border-bottom-width:${s*1.1}px;margin-top:-${s*0.35}px;"></div>
-    <div class="tree-trunk" style="height:${s*0.4}px;"></div>
+    <div class="tree-tier" style="border-left-width:${s*0.75}px;border-right-width:${s*0.75}px;border-bottom-width:${s*0.85}px;"></div>
+    <div class="tree-tier" style="border-left-width:${s}px;border-right-width:${s}px;border-bottom-width:${s*1.1}px;margin-top:-${s*0.32}px;"></div>
+    <div class="tree-tier" style="border-left-width:${s*1.25}px;border-right-width:${s*1.25}px;border-bottom-width:${s*1.3}px;margin-top:-${s*0.38}px;"></div>
+    <div class="tree-trunk" style="height:${s*0.45}px;width:6px;"></div>
   `;
   return el;
 }
@@ -743,87 +956,132 @@ function buildVillage() {
   village.innerHTML = '';
   const W = village.offsetWidth || window.innerWidth - 280;
 
-  // Layout: [tree, house, penguin, tree, penguin, tree, house, tree, house, tree, penguin, house]
   const layout = [
-    { type:'tree', x: W*0.02, size:18 },
-    { type:'house', x: W*0.07, w:55, h:70, ww:20, wh:15, ant:28 },
-    { type:'penguin', x: W*0.17, size:52, hat:false, dir:'right' },
-    { type:'tree', x: W*0.24, size:16 },
-    { type:'tree', x: W*0.28, size:22 },
-    { type:'house', x: W*0.33, w:44, h:55, ww:16, wh:12, ant:22 },
-    { type:'penguin', x: W*0.42, size:58, hat:true, glow:'#f5c842', dir:'left' },
-    { type:'tree', x: W*0.49, size:14 },
-    { type:'penguin', x: W*0.54, size:46, hat:false, dir:'right' },
-    { type:'tree', x: W*0.60, size:20 },
-    { type:'house', x: W*0.64, w:58, h:72, ww:22, wh:16, ant:30 },
-    { type:'tree', x: W*0.73, size:16 },
-    { type:'tree', x: W*0.77, size:18 },
-    { type:'penguin', x: W*0.82, size:50, hat:true, glow:'#2dcea0', dir:'left' },
-    { type:'house', x: W*0.87, w:50, h:65, ww:18, wh:14, ant:25 },
-    { type:'tree', x: W*0.95, size:15 },
+    { type:'tree',    x: W*0.01, size:32 },
+    { type:'house',   x: W*0.05, w:90,  h:115, ww:32, wh:24, ant:44 },
+    { type:'tree',    x: W*0.14, size:28 },
+    { type:'penguin', x: W*0.19, size:90, hat:false, dir:'right' },
+    { type:'tree',    x: W*0.26, size:36 },
+    { type:'tree',    x: W*0.31, size:26 },
+    { type:'house',   x: W*0.35, w:76,  h:96,  ww:28, wh:20, ant:36 },
+    { type:'penguin', x: W*0.44, size:100, hat:true,  glow:'#f5c842', dir:'left' },
+    { type:'tree',    x: W*0.52, size:30 },
+    { type:'penguin', x: W*0.57, size:82, hat:false, dir:'right' },
+    { type:'tree',    x: W*0.63, size:38 },
+    { type:'house',   x: W*0.67, w:96,  h:120, ww:34, wh:26, ant:48 },
+    { type:'tree',    x: W*0.76, size:28 },
+    { type:'tree',    x: W*0.80, size:34 },
+    { type:'penguin', x: W*0.84, size:92, hat:true,  glow:'#2dcea0', dir:'left' },
+    { type:'house',   x: W*0.89, w:82,  h:105, ww:30, wh:22, ant:40 },
+    { type:'tree',    x: W*0.97, size:26 },
   ];
 
   layout.forEach(item => {
-    let el;
+    let domEl;
     if (item.type === 'tree') {
-      el = makeTree(item.size);
-      el.style.left = item.x + 'px';
+      domEl = makeTree(item.size);
+      domEl.style.left = item.x + 'px';
+      village.appendChild(domEl);
     } else if (item.type === 'house') {
-      el = makeHouse(item.w, item.h, item.ww, item.wh, item.ant);
-      el.style.left = item.x + 'px';
+      domEl = makeHouse(item.w, item.h, item.ww, item.wh, item.ant);
+      domEl.style.left = item.x + 'px';
+      village.appendChild(domEl);
     } else if (item.type === 'penguin') {
-      el = document.createElement('div');
-      el.className = 'penguin';
-      el.style.left = item.x + 'px';
-      el.innerHTML = `<div class="penguin-inner">${makePenguinSVG(item.size, item.hat, item.glow)}</div>`;
-      animatePenguin(el, item.x, W, item.dir, item.size);
+      const wrap = document.createElement('div');
+      wrap.className = 'penguin';
+      wrap.style.left = item.x + 'px';
+
+      const rig = makePenguinEl(item.size, item.hat, item.glow);
+      wrap.appendChild(rig.svg);
+      village.appendChild(wrap);
+      animatePenguin(wrap, rig, item.x, W, item.dir);
     }
-    village.appendChild(el);
   });
 }
 
-function animatePenguin(el, startX, maxW, initDir, size) {
+function animatePenguin(wrap, rig, startX, maxW, initDir) {
   let x = startX;
   let dir = initDir === 'left' ? -1 : 1;
-  let speed = 0.4 + Math.random() * 0.5;
-  let waddleAngle = 0;
-  let waddleDir = 1;
+  const speed = 0.65 + Math.random() * 0.55;
+  let phase = Math.random() * Math.PI * 2; // walk cycle phase
   let paused = false;
   let pauseTimer = 0;
+  let frame = 0;
 
-  const inner = el.querySelector('.penguin-inner');
+  // Walk cycle: drives leg swing, body bob, wing counter-swing
+  // Phase advances each frame; full cycle = 2*PI
+  const STEP = 0.07; // radians per frame — controls walk speed cadence
 
   function tick() {
+    frame++;
+
     if (paused) {
       pauseTimer--;
-      if (pauseTimer <= 0) paused = false;
-    } else {
-      x += dir * speed;
-      waddleAngle += waddleDir * 1.5;
-      if (Math.abs(waddleAngle) > 7) waddleDir *= -1;
-
-      // Boundary bounce
-      if (x < 10) { x = 10; dir = 1; }
-      if (x > maxW - size) { x = maxW - size; dir = -1; }
-
-      // Random pause
-      if (Math.random() < 0.003) {
-        paused = true;
-        pauseTimer = 40 + Math.random() * 80;
-        waddleAngle = 0;
-      }
+      if (pauseTimer <= 0) { paused = false; }
+      // idle: gentle sway
+      const sway = Math.sin(frame * 0.04) * 2;
+      rig.svg.style.transform = `scaleX(${dir}) rotate(${sway}deg)`;
+      rig.svg.style.transformOrigin = 'center bottom';
+      requestAnimationFrame(tick);
+      return;
     }
 
-    el.style.left = x + 'px';
-    const flip = dir < 0 ? 'scaleX(-1)' : '';
-    inner.style.transform = paused
-      ? `${flip} rotate(0deg)`
-      : `${flip} rotate(${waddleAngle}deg)`;
+    // Advance walk phase
+    phase += STEP;
+
+    // Body position: horizontal movement + vertical bob (2x per step cycle)
+    x += dir * speed;
+    const bob = Math.abs(Math.sin(phase)) * -3.5; // dips twice per full stride
+
+    // Body side-tilt: gentle rock left-right
+    const bodyTilt = Math.sin(phase) * 4.5;
+
+    // Leg swings: opposite phase (alternating)
+    const lLegAngle = Math.sin(phase) * 28;       // left leg
+    const rLegAngle = Math.sin(phase + Math.PI) * 28; // right leg (offset by π)
+
+    // Foot contact squish: when leg is forward (near 0 cross), foot slightly splays
+    const lFootScale = 1 + Math.max(0, Math.cos(phase)) * 0.15;
+    const rFootScale = 1 + Math.max(0, Math.cos(phase + Math.PI)) * 0.15;
+
+    // Wing counter-swing (opposite to same-side leg, smaller amplitude)
+    const lwAngle = Math.sin(phase) * -14;
+    const rwAngle = Math.sin(phase + Math.PI) * -14;
+
+    // Boundaries
+    if (x < 10)        { x = 10;        dir = 1;  phase = 0; }
+    if (x > maxW - 80) { x = maxW - 80; dir = -1; phase = 0; }
+
+    // Random pause
+    if (Math.random() < 0.0025) {
+      paused = true;
+      pauseTimer = 60 + Math.floor(Math.random() * 100);
+    }
+
+    // Apply transforms — flip the whole SVG for direction, then animate parts
+    // scaleX flip for direction
+    rig.svg.style.transformOrigin = 'center bottom';
+    rig.svg.style.transform = `scaleX(${dir}) translateY(${bob}px) rotate(${bodyTilt}deg)`;
+
+    // Legs — rotate around their pivot at top of leg
+    const llt = `${rig.cx - rig.W*0.16} ${rig.legTopY}`;
+    const rlt = `${rig.cx + rig.W*0.16} ${rig.legTopY}`;
+    rig.lLeg.setAttribute('transform', `rotate(${lLegAngle}, ${llt}) scale(${lFootScale} 1)`);
+    rig.rLeg.setAttribute('transform', `rotate(${rLegAngle}, ${rlt}) scale(${rFootScale} 1)`);
+
+    // Wings
+    const lwp = `${rig.cx - rig.W*0.38*0.72} ${rig.H*0.58 - rig.H*0.32*0.1}`;
+    const rwp = `${rig.cx + rig.W*0.38*0.72} ${rig.H*0.58 - rig.H*0.32*0.1}`;
+    rig.lWing.setAttribute('transform', `rotate(${lwAngle}, ${lwp})`);
+    rig.rWing.setAttribute('transform', `rotate(${rwAngle}, ${rwp})`);
+
+    // Position the wrapper
+    wrap.style.left = x + 'px';
 
     requestAnimationFrame(tick);
   }
-  // Stagger start
-  setTimeout(tick, Math.random() * 2000);
+
+  setTimeout(tick, Math.random() * 1200);
 }
 
 // Build village after layout
