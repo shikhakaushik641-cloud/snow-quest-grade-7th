@@ -330,6 +330,136 @@
     animation: snowfall linear infinite;
     pointer-events: none;
   }
+
+  /* ── VILLAGE LAYER ── */
+  .village-layer {
+    position: absolute;
+    bottom: 38px;
+    left: 0; right: 0;
+    height: 180px;
+    pointer-events: none;
+    overflow: hidden;
+  }
+
+  /* Houses */
+  .house {
+    position: absolute;
+    bottom: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .house-roof {
+    width: 0; height: 0;
+    border-left: solid transparent;
+    border-right: solid transparent;
+    border-bottom: solid #0d2140;
+    position: relative;
+  }
+  .house-roof::after {
+    content: '';
+    position: absolute;
+    top: -8px; left: 50%;
+    transform: translateX(-50%);
+    width: 0; height: 0;
+    border-left: solid transparent;
+    border-right: solid transparent;
+    border-bottom: 10px solid #d8eef8;
+  }
+  .house-body {
+    background: #0d2140;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .house-window {
+    background: #f5c842;
+    border-radius: 2px;
+    box-shadow: 0 0 8px #f5c84288;
+  }
+  .house-antenna {
+    position: absolute;
+    top: -100%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 2px;
+    background: #1a3a5c;
+  }
+  .house-antenna::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 50%;
+    transform: translateX(-50%);
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--accent-cyan);
+    box-shadow: 0 0 6px var(--accent-cyan);
+  }
+
+  /* Pine trees */
+  .tree {
+    position: absolute;
+    bottom: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+  }
+  .tree-tier {
+    width: 0; height: 0;
+    border-left: solid transparent;
+    border-right: solid transparent;
+    border-bottom: solid #1a5c30;
+    margin-top: -4px;
+    position: relative;
+  }
+  .tree-tier::after {
+    content: '';
+    position: absolute;
+    top: 3px; left: 50%;
+    transform: translateX(-50%);
+    width: 60%; height: 3px;
+    background: #d8eef888;
+    border-radius: 1px;
+  }
+  .tree-trunk {
+    width: 5px;
+    background: #3a2010;
+    border-radius: 1px;
+  }
+
+  /* Penguin */
+  .penguin {
+    position: absolute;
+    bottom: 0;
+    cursor: pointer;
+    pointer-events: all;
+  }
+  .penguin svg { display: block; }
+
+  /* Waddle walk */
+  @keyframes waddle-right {
+    0%   { transform: translateX(0)   rotate(0deg);   }
+    20%  { transform: translateX(12%) rotate(6deg);  }
+    40%  { transform: translateX(24%) rotate(-4deg); }
+    60%  { transform: translateX(36%) rotate(5deg);  }
+    80%  { transform: translateX(48%) rotate(-3deg); }
+    100% { transform: translateX(60%) rotate(0deg);  }
+  }
+  @keyframes waddle-left {
+    0%   { transform: translateX(0)    rotate(0deg)  scaleX(-1); }
+    20%  { transform: translateX(-12%) rotate(-6deg) scaleX(-1); }
+    40%  { transform: translateX(-24%) rotate(4deg)  scaleX(-1); }
+    60%  { transform: translateX(-36%) rotate(-5deg) scaleX(-1); }
+    80%  { transform: translateX(-48%) rotate(3deg)  scaleX(-1); }
+    100% { transform: translateX(-60%) rotate(0deg)  scaleX(-1); }
+  }
+  @keyframes bob {
+    0%,100% { transform: translateY(0); }
+    50%     { transform: translateY(-3px); }
+  }
+  .penguin-inner { transform-origin: bottom center; }
 </style>
 </head>
 <body>
@@ -361,6 +491,9 @@
     <svg class="wave" style="bottom:15%;height:130px;opacity:0.6;" viewBox="0 0 1440 130" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
       <path d="M0,80 C300,30 1100,120 1440,60 L1440,130 L0,130 Z" fill="#071830"/>
     </svg>
+
+    <!-- Village layer: houses, trees, penguins -->
+    <div class="village-layer" id="village"></div>
 
     <!-- Snow ground -->
     <svg style="position:absolute;bottom:0;width:100%;height:120px;" viewBox="0 0 1440 120" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
@@ -538,6 +671,166 @@ for (let i = 0; i < 50; i++) {
   `;
   scene.appendChild(flake);
 }
+
+// ── VILLAGE BUILDER ──
+function makePenguinSVG(size, hasHat, glowColor) {
+  const h = size, w = size * 0.7;
+  const hat = hasHat ? `
+    <ellipse cx="${w/2}" cy="${h*0.13}" rx="${w*0.28}" ry="${h*0.04}" fill="#1a2a1a"/>
+    <rect x="${w*0.3}" y="${h*0.04}" width="${w*0.4}" height="${h*0.1}" rx="2" fill="#1a3a1a"/>
+    <circle cx="${w*0.5}" cy="${h*0.04}" r="${h*0.035}" fill="${glowColor||'#f5c842'}" style="filter:drop-shadow(0 0 4px ${glowColor||'#f5c842'})"/>
+  ` : '';
+  return `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg">
+    ${hat}
+    <!-- body -->
+    <ellipse cx="${w*0.5}" cy="${h*0.55}" rx="${w*0.38}" ry="${h*0.38}" fill="#1a1a2e"/>
+    <!-- belly -->
+    <ellipse cx="${w*0.5}" cy="${h*0.6}" rx="${w*0.22}" ry="${h*0.26}" fill="#e8f0ff"/>
+    <!-- head -->
+    <circle cx="${w*0.5}" cy="${h*0.2}" r="${w*0.28}" fill="#1a1a2e"/>
+    <!-- face white -->
+    <ellipse cx="${w*0.5}" cy="${h*0.22}" rx="${w*0.18}" ry="${w*0.14}" fill="#e8f0ff"/>
+    <!-- eyes -->
+    <circle cx="${w*0.42}" cy="${h*0.18}" r="${w*0.05}" fill="white"/>
+    <circle cx="${w*0.58}" cy="${h*0.18}" r="${w*0.05}" fill="white"/>
+    <circle cx="${w*0.43}" cy="${h*0.18}" r="${w*0.028}" fill="#111"/>
+    <circle cx="${w*0.59}" cy="${h*0.18}" r="${w*0.028}" fill="#111"/>
+    <!-- beak -->
+    <ellipse cx="${w*0.5}" cy="${h*0.25}" rx="${w*0.07}" ry="${h*0.04}" fill="#f5a030"/>
+    <!-- wings -->
+    <ellipse cx="${w*0.18}" cy="${h*0.55}" rx="${w*0.13}" ry="${h*0.22}" fill="#111228" transform="rotate(-10,${w*0.18},${h*0.55})"/>
+    <ellipse cx="${w*0.82}" cy="${h*0.55}" rx="${w*0.13}" ry="${h*0.22}" fill="#111228" transform="rotate(10,${w*0.82},${h*0.55})"/>
+    <!-- feet -->
+    <ellipse cx="${w*0.38}" cy="${h*0.92}" rx="${w*0.14}" ry="${h*0.05}" fill="#f5a030"/>
+    <ellipse cx="${w*0.62}" cy="${h*0.92}" rx="${w*0.14}" ry="${h*0.05}" fill="#f5a030"/>
+    <!-- blue accent band -->
+    <path d="M${w*0.15},${h*0.38} Q${w*0.08},${h*0.3} ${w*0.2},${h*0.22}" stroke="#00aaee" stroke-width="1.5" fill="none" opacity="0.5"/>
+    <path d="M${w*0.85},${h*0.38} Q${w*0.92},${h*0.3} ${w*0.8},${h*0.22}" stroke="#00aaee" stroke-width="1.5" fill="none" opacity="0.5"/>
+  </svg>`;
+}
+
+function makeHouse(w, h, windowW, windowH, antennaH, snowCapW) {
+  const el = document.createElement('div');
+  el.className = 'house';
+  el.style.cssText = `bottom:0;`;
+  el.innerHTML = `
+    <div class="house-roof" style="border-left-width:${w*0.55}px;border-right-width:${w*0.55}px;border-bottom-width:${h*0.45}px;width:0;">
+      <div style="position:absolute;top:0;left:${-w*0.55}px;width:${w*1.1}px;height:8px;background:#d8eef8;border-radius:2px 2px 0 0;margin-top:${h*0.45-6}px;"></div>
+    </div>
+    <div class="house-body" style="width:${w}px;height:${h*0.6}px;">
+      <div class="house-antenna" style="height:${antennaH}px;"></div>
+      <div class="house-window" style="width:${windowW}px;height:${windowH}px;"></div>
+    </div>
+  `;
+  return el;
+}
+
+function makeTree(size) {
+  const el = document.createElement('div');
+  el.className = 'tree';
+  const s = size;
+  el.innerHTML = `
+    <div class="tree-tier" style="border-left-width:${s*0.7}px;border-right-width:${s*0.7}px;border-bottom-width:${s*0.8}px;"></div>
+    <div class="tree-tier" style="border-left-width:${s*0.9}px;border-right-width:${s*0.9}px;border-bottom-width:${s}px;margin-top:-${s*0.3}px;"></div>
+    <div class="tree-tier" style="border-left-width:${s*1.1}px;border-right-width:${s*1.1}px;border-bottom-width:${s*1.1}px;margin-top:-${s*0.35}px;"></div>
+    <div class="tree-trunk" style="height:${s*0.4}px;"></div>
+  `;
+  return el;
+}
+
+function buildVillage() {
+  const village = document.getElementById('village');
+  village.innerHTML = '';
+  const W = village.offsetWidth || window.innerWidth - 280;
+
+  // Layout: [tree, house, penguin, tree, penguin, tree, house, tree, house, tree, penguin, house]
+  const layout = [
+    { type:'tree', x: W*0.02, size:18 },
+    { type:'house', x: W*0.07, w:55, h:70, ww:20, wh:15, ant:28 },
+    { type:'penguin', x: W*0.17, size:52, hat:false, dir:'right' },
+    { type:'tree', x: W*0.24, size:16 },
+    { type:'tree', x: W*0.28, size:22 },
+    { type:'house', x: W*0.33, w:44, h:55, ww:16, wh:12, ant:22 },
+    { type:'penguin', x: W*0.42, size:58, hat:true, glow:'#f5c842', dir:'left' },
+    { type:'tree', x: W*0.49, size:14 },
+    { type:'penguin', x: W*0.54, size:46, hat:false, dir:'right' },
+    { type:'tree', x: W*0.60, size:20 },
+    { type:'house', x: W*0.64, w:58, h:72, ww:22, wh:16, ant:30 },
+    { type:'tree', x: W*0.73, size:16 },
+    { type:'tree', x: W*0.77, size:18 },
+    { type:'penguin', x: W*0.82, size:50, hat:true, glow:'#2dcea0', dir:'left' },
+    { type:'house', x: W*0.87, w:50, h:65, ww:18, wh:14, ant:25 },
+    { type:'tree', x: W*0.95, size:15 },
+  ];
+
+  layout.forEach(item => {
+    let el;
+    if (item.type === 'tree') {
+      el = makeTree(item.size);
+      el.style.left = item.x + 'px';
+    } else if (item.type === 'house') {
+      el = makeHouse(item.w, item.h, item.ww, item.wh, item.ant);
+      el.style.left = item.x + 'px';
+    } else if (item.type === 'penguin') {
+      el = document.createElement('div');
+      el.className = 'penguin';
+      el.style.left = item.x + 'px';
+      el.innerHTML = `<div class="penguin-inner">${makePenguinSVG(item.size, item.hat, item.glow)}</div>`;
+      animatePenguin(el, item.x, W, item.dir, item.size);
+    }
+    village.appendChild(el);
+  });
+}
+
+function animatePenguin(el, startX, maxW, initDir, size) {
+  let x = startX;
+  let dir = initDir === 'left' ? -1 : 1;
+  let speed = 0.4 + Math.random() * 0.5;
+  let waddleAngle = 0;
+  let waddleDir = 1;
+  let paused = false;
+  let pauseTimer = 0;
+
+  const inner = el.querySelector('.penguin-inner');
+
+  function tick() {
+    if (paused) {
+      pauseTimer--;
+      if (pauseTimer <= 0) paused = false;
+    } else {
+      x += dir * speed;
+      waddleAngle += waddleDir * 1.5;
+      if (Math.abs(waddleAngle) > 7) waddleDir *= -1;
+
+      // Boundary bounce
+      if (x < 10) { x = 10; dir = 1; }
+      if (x > maxW - size) { x = maxW - size; dir = -1; }
+
+      // Random pause
+      if (Math.random() < 0.003) {
+        paused = true;
+        pauseTimer = 40 + Math.random() * 80;
+        waddleAngle = 0;
+      }
+    }
+
+    el.style.left = x + 'px';
+    const flip = dir < 0 ? 'scaleX(-1)' : '';
+    inner.style.transform = paused
+      ? `${flip} rotate(0deg)`
+      : `${flip} rotate(${waddleAngle}deg)`;
+
+    requestAnimationFrame(tick);
+  }
+  // Stagger start
+  setTimeout(tick, Math.random() * 2000);
+}
+
+// Build village after layout
+setTimeout(buildVillage, 100);
+window.addEventListener('resize', buildVillage);
+
+// ── END VILLAGE ──
 
 // Open subject
 function openSubject(s) {
